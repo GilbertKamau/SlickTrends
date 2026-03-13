@@ -1,0 +1,199 @@
+{
+    "name": "Slick Trends — Abandoned Cart Recovery",
+    "nodes": [
+        {
+            "parameters": {
+                "rule": {
+                    "interval": [
+                        {
+                            "field": "hours",
+                            "hoursInterval": 1
+                        }
+                    ]
+                }
+            },
+            "id": "1-trigger",
+            "name": "Every Hour",
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1.1,
+            "position": [
+                240,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "url": "={{ $env.SLICK_TRENDS_API_URL }}/api/n8n/health",
+                "options": {}
+            },
+            "id": "2-health",
+            "name": "Check API Health",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.1,
+            "position": [
+                480,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict"
+                    },
+                    "conditions": [
+                        {
+                            "leftValue": "={{ $json.success }}",
+                            "rightValue": true,
+                            "operator": {
+                                "type": "boolean",
+                                "operation": "equal"
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                }
+            },
+            "id": "3-check",
+            "name": "API Healthy?",
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2,
+            "position": [
+                720,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "={{ $env.SLICK_TRENDS_API_URL }}/api/n8n/abandoned-cart",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "x-n8n-secret",
+                            "value": "={{ $env.N8N_SECRET }}"
+                        },
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ]
+                },
+                "options": {
+                    "timeout": 30000
+                }
+            },
+            "id": "4-trigger-emails",
+            "name": "Trigger Abandoned Cart Emails",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.1,
+            "position": [
+                960,
+                200
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "const result = $json;\nif (result.success) {\n  console.log(`[Slick Trends] Sent ${result.emailsSent} abandoned cart emails`);\n  if (result.emailsSent > 0) {\n    console.log('Recipients:', result.recipients.join(', '));\n  }\n} else {\n  console.error('[Slick Trends] Job failed:', result.message);\n}\nreturn [{ json: { ...result, timestamp: new Date().toISOString() } }];"
+            },
+            "id": "5-log",
+            "name": "Log Results",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1200,
+                200
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "console.log('[Slick Trends] API health check failed — skipping abandoned cart job');\nreturn [{ json: { skipped: true, reason: 'API not reachable', timestamp: new Date().toISOString() } }];"
+            },
+            "id": "6-skip",
+            "name": "Skip (API Down)",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                960,
+                400
+            ]
+        }
+    ],
+    "connections": {
+        "Every Hour": {
+            "main": [
+                [
+                    {
+                        "node": "Check API Health",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Check API Health": {
+            "main": [
+                [
+                    {
+                        "node": "API Healthy?",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "API Healthy?": {
+            "main": [
+                [
+                    {
+                        "node": "Trigger Abandoned Cart Emails",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Skip (API Down)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Trigger Abandoned Cart Emails": {
+            "main": [
+                [
+                    {
+                        "node": "Log Results",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1",
+        "saveManualExecutions": true,
+        "callerPolicy": "workflowsFromSameOwner",
+        "errorWorkflow": ""
+    },
+    "tags": [
+        {
+            "name": "slick-trends"
+        },
+        {
+            "name": "ecommerce"
+        },
+        {
+            "name": "email-automation"
+        }
+    ],
+    "meta": {
+        "templateCredsSetupCompleted": true,
+        "instanceId": "slick-trends-n8n"
+    }
+}

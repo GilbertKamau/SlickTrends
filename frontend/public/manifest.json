@@ -1,0 +1,38 @@
+{
+    "name": "Slick Trends",
+    "short_name": "Slick Trends",
+    "description": "Premium second-hand sleepwear — robes, onesies, pajamas, night dresses for the whole family.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0a0012",
+    "theme_color": "#1a0533",
+    "orientation": "portrait-primary",
+    "scope": "/",
+    "lang": "en",
+    "categories": [
+        "shopping",
+        "lifestyle"
+    ],
+    "icons": [
+        {
+            "src": "/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "/screenshot-home.jpg",
+            "sizes": "1280x720",
+            "type": "image/jpeg",
+            "label": "Home Page"
+        }
+    ]
+}
