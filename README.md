@@ -1,130 +1,60 @@
-# 🌙 Slick Trends
+# Slick Trends
 
-A full-stack e-commerce platform for second-hand sleepwear — robes, onesies, pajamas, night dresses, baby onesies, pre-teen robes, and baby robes.
+Slick Trends is a full-stack web application designed for analyzing and keeping up with the latest trends. 
 
----
+This repository contains both the frontend and backend applications for the platform.
 
-## 🏗️ Stack
+## Architecture
 
-| Layer | Tech |
-|---|---|
-| Frontend | Next.js 14, TypeScript, Tailwind, Recharts |
-| Backend | Node.js, Express, TypeScript |
-| Products DB | MongoDB Atlas |
-| Transactions DB | PostgreSQL (Neon / Supabase / Railway) |
-| Payments | MPesa, Stripe, PayPal, Visa/Mastercard |
-| Auth | JWT with role-based access control |
+*   **Frontend**: Built with Next.js (React), Tailwind CSS, Framer Motion, and Zustand for state management. It also integrates Stripe and PayPal for payments.
+*   **Backend**: A Node.js application built with Express and TypeScript. It uses PostgreSQL and Redis, and integrates with services like Stripe, PayPal, Cloudinary, and Nodemailer.
+*   **Infrastructure as Code**: Includes a `terraform` directory for infrastructure provisioning.
+*   **Automation**: Includes an `automation` directory, likely for CI/CD or chore tasks.
 
----
+## Prerequisites
 
-## ⚙️ Setup
+Before running the application, make sure you have the following installed:
 
-### 1. Backend
+*   Node.js (v18 or higher recommended)
+*   npm (Node Package Manager)
+*   PostgreSQL
+*   Redis
+
+## Getting Started
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/GilbertKamau/SlickTrends.git
+cd SlickTrends
+```
+
+### 2. Run the Backend
+
+Navigate to the `backend` directory, install dependencies, and start the development server.
 
 ```bash
 cd backend
-cp .env.example .env
-# → Fill in your MongoDB Atlas URI, PostgreSQL URL, payment keys
-npm run dev        # Runs on http://localhost:5000
+npm install
+npm run dev
 ```
 
-### 2. Run PostgreSQL Migrations
+*Note: Ensure your `.env` file is properly configured based on `.env.example` in the backend directory.*
 
-Connect to your PostgreSQL cloud instance and run:
+### 3. Run the Frontend
 
-```sql
--- Run in order:
-backend/src/migrations/001_create_orders.sql
-backend/src/migrations/002_create_order_items.sql
-backend/src/migrations/003_create_transactions.sql
-```
-
-### 3. Frontend
+Open a new terminal window, navigate to the `frontend` directory, install dependencies, and start the Next.js development server.
 
 ```bash
 cd frontend
-cp .env.local.example .env.local     # or edit .env.local
-# → Fill in NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, NEXT_PUBLIC_PAYPAL_CLIENT_ID
-npm run dev        # Runs on http://localhost:3000
+npm install
+npm run dev
 ```
 
----
+*Note: Ensure your `.env.local` file is properly configured in the frontend directory.*
 
-## 🔑 Environment Variables
+The frontend will typically be available at `http://localhost:3000` and the backend will run on its configured port (usually `5000` or `8000`).
 
-### Backend (`.env`)
+## Deployment
 
-| Variable | Description |
-|---|---|
-| `MONGODB_URI` | MongoDB Atlas connection string |
-| `DATABASE_URL` | PostgreSQL cloud connection string |
-| `JWT_SECRET` | Your JWT signing secret |
-| `STRIPE_SECRET_KEY` | Stripe secret key |
-| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
-| `PAYPAL_CLIENT_ID` | PayPal app client ID |
-| `PAYPAL_CLIENT_SECRET` | PayPal app client secret |
-| `MPESA_CONSUMER_KEY` | Safaricom Daraja consumer key |
-| `MPESA_CONSUMER_SECRET` | Safaricom Daraja consumer secret |
-| `MPESA_SHORTCODE` | Business shortcode |
-| `MPESA_PASSKEY` | Daraja passkey |
-| `MPESA_CALLBACK_URL` | Your public callback URL |
-
-### Frontend (`.env.local`)
-
-| Variable | Description |
-|---|---|
-| `NEXT_PUBLIC_API_URL` | Backend API URL |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key |
-| `NEXT_PUBLIC_PAYPAL_CLIENT_ID` | PayPal client ID |
-
----
-
-## 👤 User Roles
-
-| Role | Capabilities |
-|---|---|
-| `customer` | Browse, cart, checkout, order tracking |
-| `admin` | All customer + add/edit stock, manage orders (dispatch, close) |
-| `superadmin` | All admin + full metrics, user management, transactions |
-
-### Create First Super Admin
-
-Use MongoDB compass or connect to Atlas and manually set `role: "superadmin"` on a user, or use the API after seeding:
-
-```bash
-POST /api/auth/register  # Create user
-# Then manually update role in MongoDB: { role: "superadmin" }
-```
-
-Or add a seed script (optional).
-
----
-
-## 📍 Routes Overview
-
-### Customer
-- `/` — Home
-- `/products` — All products with filters
-- `/products/[id]` — Product detail
-- `/cart` — Shopping cart
-- `/checkout` — 3-step checkout (address → payment → confirm)
-
-### Admin (`/admin`)
-- `/admin` — Dashboard with KPI cards
-- `/admin/stock` — Add/edit/remove products
-- `/admin/orders` — Manage order status lifecycle
-
-### Super Admin (`/superadmin`)
-- `/superadmin` — Revenue charts, order metrics, payment breakdown
-- `/superadmin/users` — User management
-
----
-
-## 💳 Payment Methods
-
-| Method | How It Works |
-|---|---|
-| **M-Pesa** | STK Push via Safaricom Daraja API |
-| **Stripe** | Payment Intent (card tokenization) |
-| **PayPal** | PayPal Order API (sandbox/live) |
-| **Visa/Mastercard** | Stripe with direct payment method ID |
+The application provides infrastructure definitions in the `terraform` directory. Use these definitions to provision the necessary cloud resources before deploying the application.
