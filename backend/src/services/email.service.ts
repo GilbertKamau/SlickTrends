@@ -1,12 +1,15 @@
 import nodemailer from 'nodemailer';
 
+// Use Gmail by default, but allow switching to SendGrid via environment variables
+const isSendGrid = process.env.EMAIL_SERVICE === 'sendgrid' || !!process.env.SENDGRID_API_KEY;
+
 const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    host: isSendGrid ? 'smtp.sendgrid.net' : (process.env.SMTP_HOST || 'smtp.gmail.com'),
     port: Number(process.env.SMTP_PORT) || 587,
     secure: false,
     auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+        user: isSendGrid ? 'apikey' : process.env.SMTP_USER,
+        pass: isSendGrid ? (process.env.SENDGRID_API_KEY || process.env.SMTP_PASS) : process.env.SMTP_PASS,
     },
 });
 
@@ -172,6 +175,26 @@ export async function sendAbandonedCartEmail(to: string, name: string, cartItems
     <div style="text-align:center;">${btn('Complete My Purchase →', SITE + '/cart', '#d4af37')}</div>
     <p style="color:#6b5a8a;font-size:12px;text-align:center;margin-top:24px;">These items are in limited supply — grab yours before someone else does! 🌙</p>`;
     await transporter.sendMail({ from: FROM, to, subject: `${name.split(' ')[0]}, your cart is waiting! 🛒 KES ${totalValue.toLocaleString()} inside`, html: baseTemplate('Your Cart is Waiting', content, `You left KES ${totalValue.toLocaleString()} worth of sleepwear in your cart`) });
+}
+
+export async function sendPasswordResetEmail(to: string, name: string, resetUrl: string) {
+    const content = `
+    <h2 style="color:#d4af37;font-size:22px;margin:0 0 16px;">Password Reset Request</h2>
+    <p style="color:#b8a9d0;line-height:1.8;margin:0 0 20px;">Hi ${name}, you requested to reset your password. Click the button below to set a new one. This link will expire in 1 hour.</p>
+    <div style="text-align:center;">${btn('Reset Password', resetUrl)}</div>
+    <p style="color:#6b5a8a;font-size:12px;margin-top:24px;">If you didn't request this, please ignore this email.</p>`;
+    await transporter.sendMail({ from: FROM, to, subject: 'Password Reset Request — Slick Trends', html: baseTemplate('Reset Your Password', content) });
+}
+
+export async function sendOTPEmail(to: string, name: string, otp: string) {
+    const content = `
+    <h2 style="color:#d4af37;font-size:22px;margin:0 0 16px;">Verify Your Email</h2>
+    <p style="color:#b8a9d0;line-height:1.8;margin:0 0 20px;">Hi ${name}, welcome to Slick Trends! Please use the following code to verify your account:</p>
+    <div style="background:rgba(212,175,55,0.1);border:1px dashed #d4af37;padding:20px;text-align:center;border-radius:12px;margin:24px 0;">
+      <span style="font-size:32px;font-weight:800;letter-spacing:8px;color:#d4af37;">${otp}</span>
+    </div>
+    <p style="color:#b8a9d0;font-size:14px;">This code is valid for 10 minutes.</p>`;
+    await transporter.sendMail({ from: FROM, to, subject: `${otp} is your Slick Trends verification code`, html: baseTemplate('Verify Your Account', content) });
 }
 
 export default transporter;

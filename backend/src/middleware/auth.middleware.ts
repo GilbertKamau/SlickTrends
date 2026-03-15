@@ -2,13 +2,21 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
 
-export interface AuthRequest extends Request {
-    user?: {
-        id: string;
-        email: string;
-        role: string;
-    };
+declare global {
+    namespace Express {
+        interface User {
+            id: string;
+            email: string;
+            role: string;
+            [key: string]: any;
+        }
+        interface Request {
+            user?: User;
+        }
+    }
 }
+
+export type AuthRequest = Request;
 
 export const protect = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {

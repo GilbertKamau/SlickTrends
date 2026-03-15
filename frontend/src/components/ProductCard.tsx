@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { ShoppingBag, Star } from 'lucide-react';
+import { ShoppingBag, Star, MessageCircle } from 'lucide-react';
 import { useCartStore } from '@/store/cartStore';
 import toast from 'react-hot-toast';
 
@@ -14,6 +14,7 @@ interface Product {
     condition: string;
     images: string[];
     stock: number;
+    isSold?: boolean;
     isFeatured?: boolean;
 }
 
@@ -34,7 +35,7 @@ export default function ProductCard({ product }: { product: Product }) {
 
     const handleAddToCart = (e: React.MouseEvent) => {
         e.preventDefault();
-        if (product.stock === 0) return;
+        if (product.stock === 0 || product.isSold) return;
         addItem({
             productId: product._id,
             name: product.name,
@@ -45,6 +46,13 @@ export default function ProductCard({ product }: { product: Product }) {
             condition: product.condition,
         });
         toast.success(`${product.name} added to cart!`);
+    };
+
+    const handleWhatsAppClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        const phoneNumber = '254722277050';
+        const message = encodeURIComponent(`Hi, is ${product.name} still in stock?`);
+        window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
     };
 
     return (
@@ -66,9 +74,22 @@ export default function ProductCard({ product }: { product: Product }) {
                             <span className="badge badge-gold" style={{ gap: 4 }}><Star size={10} fill="#d4af37" /> Featured</span>
                         </div>
                     )}
-                    {product.stock === 0 && (
+                    {product.stock === 0 && !product.isSold && (
                         <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <span style={{ color: '#ef4444', fontWeight: 700, fontSize: '1rem' }}>Out of Stock</span>
+                        </div>
+                    )}
+                    {product.isSold && (
+                        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+                            <div style={{ 
+                                width: '140%', height: 40, background: '#ef4444', color: 'white', 
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontWeight: 900, fontSize: '1.5rem', textTransform: 'uppercase',
+                                transform: 'rotate(-35deg)', letterSpacing: 4,
+                                boxShadow: '0 4px 15px rgba(239,68,68,0.5)', borderY: '2px solid white'
+                            }}>
+                                SOLD
+                            </div>
                         </div>
                     )}
                 </div>
@@ -92,16 +113,28 @@ export default function ProductCard({ product }: { product: Product }) {
                                 <span style={{ fontSize: '0.8rem', color: '#6b5a8a', textDecoration: 'line-through', marginLeft: 8 }}>KES {product.originalPrice.toLocaleString()}</span>
                             )}
                         </div>
-                        <button onClick={handleAddToCart} disabled={product.stock === 0}
-                            style={{
-                                width: 36, height: 36, borderRadius: 8,
-                                background: product.stock === 0 ? 'rgba(255,255,255,0.05)' : 'linear-gradient(135deg, #d4af37, #f0d060)',
-                                border: 'none', cursor: product.stock === 0 ? 'not-allowed' : 'pointer',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                transition: 'all 0.2s',
-                            }}>
-                            <ShoppingBag size={16} color="#0a0012" />
-                        </button>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                            <button onClick={handleWhatsAppClick}
+                                style={{
+                                    width: 36, height: 36, borderRadius: 8,
+                                    background: 'linear-gradient(135deg, #25D366, #128C7E)',
+                                    border: 'none', cursor: 'pointer',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    transition: 'all 0.2s',
+                                }} title="Inquire via WhatsApp">
+                                <MessageCircle size={16} color="#ffffff" />
+                            </button>
+                            <button onClick={handleAddToCart} disabled={product.stock === 0 || product.isSold}
+                                style={{
+                                    width: 36, height: 36, borderRadius: 8,
+                                    background: (product.stock === 0 || product.isSold) ? 'rgba(255,255,255,0.05)' : 'linear-gradient(135deg, #d4af37, #f0d060)',
+                                    border: 'none', cursor: (product.stock === 0 || product.isSold) ? 'not-allowed' : 'pointer',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    transition: 'all 0.2s',
+                                }} title={product.isSold ? "Item Sold" : "Add to Cart"}>
+                                <ShoppingBag size={16} color="#0a0012" />
+                            </button>
+                        </div>
                     </div>
                     {product.stock > 0 && product.stock <= 5 && (
                         <p style={{ fontSize: '0.75rem', color: '#fb923c', marginTop: 8 }}>⚡ Only {product.stock} left</p>

@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
-import { ShoppingBag, Menu, X, User, LogOut, ChevronDown, Star } from 'lucide-react';
+import { ShoppingBag, Menu, X, User, LogOut, ChevronDown, Star, Sun, Moon, Megaphone } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useCartStore } from '@/store/cartStore';
 import toast from 'react-hot-toast';
@@ -24,6 +24,13 @@ export default function Navbar() {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [catOpen, setCatOpen] = useState(false);
     const [userOpen, setUserOpen] = useState(false);
+    const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+
+    const toggleTheme = () => {
+        const newTheme = theme === 'dark' ? 'light' : 'dark';
+        setTheme(newTheme);
+        document.documentElement.setAttribute('data-theme', newTheme);
+    };
 
     const handleLogout = () => {
         logout();
@@ -59,6 +66,10 @@ export default function Navbar() {
                 {/* Desktop Nav */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} className="desktop-nav">
                     <Link href="/" style={{ color: pathname === '/' ? '#d4af37' : '#b8a9d0', textDecoration: 'none', padding: '8px 14px', borderRadius: 8, fontSize: '0.9rem', fontWeight: 500, transition: 'all 0.2s' }}>Home</Link>
+                    
+                    {(user?.role === 'admin' || user?.role === 'superadmin') && (
+                        <Link href="/admin" style={{ color: '#a855f7', textDecoration: 'none', padding: '8px 14px', borderRadius: 8, fontSize: '0.9rem', fontWeight: 700, border: '1px solid rgba(168, 85, 247, 0.3)', background: 'rgba(168, 85, 247, 0.1)' }}>Dashboard</Link>
+                    )}
 
                     {/* Categories Dropdown */}
                     <div style={{ position: 'relative' }} onMouseEnter={() => setCatOpen(true)} onMouseLeave={() => setCatOpen(false)}>
@@ -102,6 +113,14 @@ export default function Navbar() {
                         )}
                     </Link>
 
+                    {/* Theme Toggle */}
+                    <button onClick={toggleTheme} style={{
+                        background: 'none', border: 'none', color: '#b8a9d0',
+                        cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '8px'
+                    }}>
+                        {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+                    </button>
+
                     {/* User Menu */}
                     {user ? (
                         <div style={{ position: 'relative' }}>
@@ -125,6 +144,11 @@ export default function Navbar() {
                                     )}
                                     {user.role === 'superadmin' && (
                                         <Link href="/superadmin" style={{ display: 'block', padding: '9px 14px', color: '#d4af37', textDecoration: 'none', borderRadius: 8, fontSize: '0.875rem' }} onClick={() => setUserOpen(false)}>Super Admin</Link>
+                                    )}
+                                    {user.role === 'superadmin' && (
+                                        <Link href="/superadmin/promotions" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', color: '#10b981', textDecoration: 'none', borderRadius: 8, fontSize: '0.875rem' }} onClick={() => setUserOpen(false)}>
+                                            <Megaphone size={14} /> Manage Ads
+                                        </Link>
                                     )}
                                     <div style={{ height: 1, background: 'rgba(124,58,237,0.2)', margin: '6px 0' }} />
                                     <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '9px 14px', color: '#ef4444', background: 'none', border: 'none', borderRadius: 8, fontSize: '0.875rem', cursor: 'pointer' }}>

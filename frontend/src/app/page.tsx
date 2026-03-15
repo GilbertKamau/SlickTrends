@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Shield, Truck, RefreshCw, Star } from 'lucide-react';
+import { ArrowRight, Shield, Truck, RefreshCw, Star, Megaphone } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
@@ -19,13 +19,23 @@ const CATEGORIES = [
 
 export default function HomePage() {
   const [featured, setFeatured] = useState([]);
+  const [promotions, setPromotions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
+    setHasMounted(true);
+    // Fetch featured products
     api.get('/products?featured=true&limit=8')
       .then(r => setFeatured(r.data.products))
-      .catch(() => { })
-      .finally(() => setLoading(false));
+      .catch(() => { });
+
+    // Fetch active promotions
+    api.get('/promotions/active')
+      .then(r => setPromotions(r.data.promotions))
+      .catch(() => { });
+
+    setLoading(false);
   }, []);
 
   return (
@@ -72,6 +82,34 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* ─── Internal Promotions (Holiday Deals) ───────────────────── */}
+        {hasMounted && promotions.length > 0 && (
+          <section className="section" style={{ background: 'var(--bg-secondary)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
+            <div className="container" style={{ position: 'relative', zIndex: 1 }}>
+              <div style={{ textAlign: 'center', marginBottom: 40 }}>
+                <h2 style={{ fontSize: '2rem', marginBottom: 12 }}>Special <span className="gradient-text">Holiday Deals</span></h2>
+                <p style={{ color: 'var(--text-secondary)' }}>Limited time offers just for you</p>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24 }}>
+                {promotions.map((promo: any) => (
+                  <Link key={promo._id} href={promo.link} style={{ textDecoration: 'none' }}>
+                    <div className="glass-card" style={{ position: 'relative', overflow: 'hidden', height: 200, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: 24 }}>
+                      <img src={promo.imageUrl} alt={promo.title} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.4, transition: '0.3s' }} />
+                      <div style={{ position: 'relative', zIndex: 1 }}>
+                        <div className="badge-gold" style={{ display: 'inline-block', padding: '4px 12px', borderRadius: 20, fontSize: '0.7rem', fontWeight: 700, marginBottom: 12, background: 'var(--accent-gold)', color: '#000' }}>
+                          {promo.type.toUpperCase()}
+                        </div>
+                        <h3 style={{ fontSize: '1.5rem', marginBottom: 4, color: 'var(--text-primary)' }}>{promo.title}</h3>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{promo.subtitle}</p>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* ─── Categories ──────────────────────────────────────────────── */}
         <section className="section" style={{ background: 'rgba(17, 0, 35, 0.5)' }}>
@@ -164,6 +202,52 @@ export default function HomePage() {
             <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
               <Link href="/auth/register" className="btn-primary" style={{ textDecoration: 'none', padding: '14px 36px', fontSize: '1rem' }}>Create Free Account</Link>
               <Link href="/products" className="btn-secondary" style={{ textDecoration: 'none', padding: '13px 36px', fontSize: '1rem' }}>Browse Products</Link>
+            </div>
+          </div>
+        </section>
+
+        {/* ─── Sponsored Section (Google Ads) ─────────────────────────── */}
+        <section style={{ padding: '60px 0', background: 'var(--bg-primary)' }}>
+          <div className="container" style={{ textAlign: 'center' }}>
+            <div style={{ 
+              maxWidth: 970, margin: '0 auto', 
+              background: 'rgba(255,255,255,0.02)', 
+              border: '1px dashed var(--text-muted)',
+              borderRadius: 8, padding: '40px 20px',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12
+            }}>
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', letterSpacing: 2 }}>SPONSORED ADVERTISEMENT</span>
+              <div style={{ color: 'var(--text-muted)', filter: 'grayscale(1)', opacity: 0.5 }}>
+                <Megaphone size={32} style={{ marginBottom: 12 }} />
+                <p>Google Ads Space</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ─── Visit Our Store (Google Maps) ─────────────────────────── */}
+        <section className="section" style={{ background: 'rgba(8,0,15,0.8)' }}>
+          <div className="container">
+            <div style={{ textAlign: 'center', marginBottom: 48 }}>
+              <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '2.2rem', marginBottom: 12 }}>
+                Visit Our <span className="gradient-text">Physical Store</span>
+              </h2>
+              <p style={{ color: '#b8a9d0' }}>Come see our curated collection in person</p>
+            </div>
+            <div className="glass-card" style={{ padding: 0, overflow: 'hidden', height: 450, borderRadius: 24, border: '1px solid rgba(212,175,55,0.2)' }}>
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d31911.3656111059!2d36.7142752!3d-1.2384736!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x182f18ce08709511%3A0xc3f17478059082ec!2sWangige!5e0!3m2!1sen!2ske!4v1710500000000!5m2!1sen!2ske"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen={true}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+            <div style={{ marginTop: 24, textAlign: 'center' }}>
+              <p style={{ color: '#d4af37', fontWeight: 600 }}>📍 Wangige, Kiambu (Opposite Shade ya Mayai)</p>
+              <p style={{ color: '#6b5a8a', fontSize: '0.9rem' }}>Open Monday - Saturday: 9:00 AM - 7:00 PM</p>
             </div>
           </div>
         </section>

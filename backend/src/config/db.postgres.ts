@@ -12,7 +12,7 @@ pool.on('connect', () => {
     console.log('✅ PostgreSQL cloud connected');
 });
 
-pool.on('error', (err) => {
+pool.on('error', (err: any) => {
     console.error('❌ PostgreSQL error:', err);
 });
 

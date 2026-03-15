@@ -29,6 +29,8 @@ export interface IProduct extends Document {
     isActive: boolean;
     addedBy: mongoose.Types.ObjectId;
     tags: string[];
+    isSold: boolean;
+    soldAt?: Date;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -59,6 +61,8 @@ const ProductSchema = new Schema<IProduct>(
         isActive: { type: Boolean, default: true },
         addedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
         tags: [{ type: String }],
+        isSold: { type: Boolean, default: false },
+        soldAt: { type: Date },
     },
     { timestamps: true }
 );

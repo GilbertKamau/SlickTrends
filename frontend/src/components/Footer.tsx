@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { ShoppingBag, Instagram, Twitter, Facebook } from 'lucide-react';
+import { ShoppingBag, Instagram, Twitter, Facebook, MessageCircle, MapPin, Phone, Mail } from 'lucide-react';
 
 export default function Footer() {
     return (
@@ -61,11 +61,31 @@ export default function Footer() {
 
                     {/* Info */}
                     <div>
-                        <h4 style={{ color: '#d4af37', fontFamily: 'Playfair Display, serif', marginBottom: 20, fontSize: '1rem' }}>Info</h4>
-                        <p style={{ color: '#6b5a8a', fontSize: '0.875rem', marginBottom: 10 }}>📦 Free shipping over KES 5,000</p>
-                        <p style={{ color: '#6b5a8a', fontSize: '0.875rem', marginBottom: 10 }}>🔄 Easy returns within 7 days</p>
-                        <p style={{ color: '#6b5a8a', fontSize: '0.875rem', marginBottom: 10 }}>💳 MPesa, Stripe, PayPal accepted</p>
-                        <p style={{ color: '#6b5a8a', fontSize: '0.875rem' }}>📧 support@slicktrends.com</p>
+                        <h4 style={{ color: '#d4af37', fontFamily: 'Playfair Display, serif', marginBottom: 20, fontSize: '1rem' }}>Contact Us</h4>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                            <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', color: '#6b5a8a', fontSize: '0.875rem' }}>
+                                <MapPin size={18} style={{ color: '#d4af37', flexShrink: 0 }} />
+                                <span>Wangige, Kiambu (Opposite Shade ya Mayai)</span>
+                            </div>
+                            <a href="tel:+254722277050" style={{ display: 'flex', gap: 10, alignItems: 'center', color: '#6b5a8a', fontSize: '0.875rem', textDecoration: 'none' }}>
+                                <Phone size={18} style={{ color: '#d4af37' }} />
+                                <span>+254 722 277 050</span>
+                            </a>
+                            <a href="mailto:support@slicktrends.com" style={{ display: 'flex', gap: 10, alignItems: 'center', color: '#6b5a8a', fontSize: '0.875rem', textDecoration: 'none' }}>
+                                <Mail size={18} style={{ color: '#d4af37' }} />
+                                <span>support@slicktrends.com</span>
+                            </a>
+                            <a href="https://wa.me/254722277050" target="_blank" rel="noopener noreferrer" 
+                                style={{ 
+                                    display: 'flex', gap: 10, alignItems: 'center', padding: '10px 16px', 
+                                    background: 'rgba(37, 211, 102, 0.1)', border: '1px solid rgba(37, 211, 102, 0.3)', 
+                                    borderRadius: 12, color: '#25D366', fontSize: '0.875rem', textDecoration: 'none',
+                                    marginTop: 8, transition: 'all 0.2s', fontWeight: 600
+                                }}>
+                                <MessageCircle size={18} />
+                                <span>Chat on WhatsApp</span>
+                            </a>
+                        </div>
                     </div>
                 </div>
 

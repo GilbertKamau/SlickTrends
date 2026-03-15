@@ -58,12 +58,32 @@ export default function LoginPage() {
                                 </button>
                             </div>
                         </div>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: -10 }}>
+                            <Link href="/auth/forgot-password" style={{ color: '#6b5a8a', fontSize: '0.8rem', textDecoration: 'none' }}>Forgot Password?</Link>
+                        </div>
                         <button className="btn-primary" type="submit" disabled={isLoading} style={{ width: '100%', justifyContent: 'center', padding: '13px', fontSize: '1rem', opacity: isLoading ? 0.7 : 1 }}>
                             {isLoading ? 'Signing in...' : 'Sign In'}
                         </button>
                     </form>
 
-                    <div style={{ height: 1, background: 'rgba(124,58,237,0.2)', margin: '24px 0' }} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '24px 0' }}>
+                        <div style={{ flex: 1, height: 1, background: 'rgba(124,58,237,0.2)' }} />
+                        <span style={{ color: '#6b5a8a', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: 1 }}>Or continue with</span>
+                        <div style={{ flex: 1, height: 1, background: 'rgba(124,58,237,0.2)' }} />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                        <button onClick={() => window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/auth/google`}
+                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '10px', borderRadius: 10, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#f5f0ff', cursor: 'pointer', transition: 'all 0.2s', fontSize: '0.875rem' }}>
+                            Google
+                        </button>
+                        <button onClick={() => window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/auth/microsoft`}
+                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '10px', borderRadius: 10, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#f5f0ff', cursor: 'pointer', transition: 'all 0.2s', fontSize: '0.875rem' }}>
+                            Microsoft
+                        </button>
+                    </div>
+
+                    <div style={{ height: 1, background: 'rgba(124,58,237,0.1)', margin: '24px 0' }} />
                     <p style={{ textAlign: 'center', color: '#6b5a8a', fontSize: '0.875rem' }}>
                         No account?{' '}
                         <Link href="/auth/register" style={{ color: '#d4af37', textDecoration: 'none', fontWeight: 600 }}>Create one free</Link>

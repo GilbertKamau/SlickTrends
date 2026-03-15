@@ -69,7 +69,7 @@ import { protect, AuthRequest } from '../middleware/auth.middleware';
  * Called by the frontend every time the cart changes.
  * Upserts the cart state in the abandoned_carts table.
  */
-router.post('/cart-heartbeat', protect, async (req: AuthRequest, res: Response): Promise<void> => {
+router.post('/cart-heartbeat', protect as any, async (req: AuthRequest, res: Response): Promise<void> => {
     const { userId, userEmail, userName, items, totalValue } = req.body;
 
     // Strict isolation: users can only update their own cart
@@ -101,7 +101,7 @@ router.post('/cart-heartbeat', protect, async (req: AuthRequest, res: Response):
  * POST /api/n8n/clear-cart
  * Called when a successful order is placed, to clear the abandoned cart record.
  */
-router.post('/clear-cart', protect, async (req: AuthRequest, res: Response): Promise<void> => {
+router.post('/clear-cart', protect as any, async (req: AuthRequest, res: Response): Promise<void> => {
     const { userEmail } = req.body;
 
     // Strict isolation: users can only clear their own cart

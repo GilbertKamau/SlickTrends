@@ -42,7 +42,7 @@ router.get('/:id', async (req: AuthRequest, res: Response): Promise<void> => {
 });
 
 // POST /api/products - Admin adds product
-router.post('/', protect, requireRole('admin', 'superadmin'), async (req: AuthRequest, res: Response): Promise<void> => {
+router.post('/', protect as any, requireRole('admin', 'superadmin') as any, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const product = await Product.create({ ...req.body, addedBy: req.user!.id });
         res.status(201).json({ success: true, product });
@@ -52,10 +52,13 @@ router.post('/', protect, requireRole('admin', 'superadmin'), async (req: AuthRe
 });
 
 // PUT /api/products/:id - Admin updates product
-router.put('/:id', protect, requireRole('admin', 'superadmin'), async (req: AuthRequest, res: Response): Promise<void> => {
+router.put('/:id', protect as any, requireRole('admin', 'superadmin') as any, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        if (!product) { res.status(404).json({ success: false, message: 'Product not found.' }); return; }
+        const filter: any = { _id: req.params.id };
+        if (req.user!.role === 'admin') filter.addedBy = req.user!.id;
+        
+        const product = await Product.findOneAndUpdate(filter, req.body, { new: true });
+        if (!product) { res.status(404).json({ success: false, message: 'Product not found or access denied.' }); return; }
         res.json({ success: true, product });
     } catch (err) {
         res.status(500).json({ success: false, message: 'Server error.' });
@@ -63,11 +66,14 @@ router.put('/:id', protect, requireRole('admin', 'superadmin'), async (req: Auth
 });
 
 // PATCH /api/products/:id/stock - Admin updates stock
-router.patch('/:id/stock', protect, requireRole('admin', 'superadmin'), async (req: AuthRequest, res: Response): Promise<void> => {
+router.patch('/:id/stock', protect as any, requireRole('admin', 'superadmin') as any, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { stock } = req.body;
-        const product = await Product.findByIdAndUpdate(req.params.id, { stock }, { new: true });
-        if (!product) { res.status(404).json({ success: false, message: 'Product not found.' }); return; }
+        const filter: any = { _id: req.params.id };
+        if (req.user!.role === 'admin') filter.addedBy = req.user!.id;
+
+        const product = await Product.findOneAndUpdate(filter, { stock }, { new: true });
+        if (!product) { res.status(404).json({ success: false, message: 'Product not found or access denied.' }); return; }
         res.json({ success: true, product });
     } catch (err) {
         res.status(500).json({ success: false, message: 'Server error.' });
@@ -75,9 +81,13 @@ router.patch('/:id/stock', protect, requireRole('admin', 'superadmin'), async (r
 });
 
 // DELETE /api/products/:id - Soft delete
-router.delete('/:id', protect, requireRole('admin', 'superadmin'), async (req: AuthRequest, res: Response): Promise<void> => {
+router.delete('/:id', protect as any, requireRole('admin', 'superadmin') as any, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        await Product.findByIdAndUpdate(req.params.id, { isActive: false });
+        const filter: any = { _id: req.params.id };
+        if (req.user!.role === 'admin') filter.addedBy = req.user!.id;
+
+        const product = await Product.findOneAndUpdate(filter, { isActive: false });
+        if (!product) { res.status(404).json({ success: false, message: 'Product not found or access denied.' }); return; }
         res.json({ success: true, message: 'Product removed.' });
     } catch (err) {
         res.status(500).json({ success: false, message: 'Server error.' });
@@ -85,13 +95,17 @@ router.delete('/:id', protect, requireRole('admin', 'superadmin'), async (req: A
 });
 
 // GET /api/products/admin/all - Admin sees all including inactive
-router.get('/admin/all', protect, requireRole('admin', 'superadmin'), async (req: AuthRequest, res: Response): Promise<void> => {
+router.get('/admin/all', protect as any, requireRole('admin', 'superadmin') as any, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { page = 1, limit = 20 } = req.query;
         const skip = (Number(page) - 1) * Number(limit);
+        
+        const filter: any = {};
+        if (req.user!.role === 'admin') filter.addedBy = req.user!.id;
+
         const [products, total] = await Promise.all([
-            Product.find().sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).populate('addedBy', 'name'),
-            Product.countDocuments(),
+            Product.find(filter).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).populate('addedBy', 'name'),
+            Product.countDocuments(filter),
         ]);
         res.json({ success: true, products, total, page: Number(page), pages: Math.ceil(total / Number(limit)) });
     } catch (err) {

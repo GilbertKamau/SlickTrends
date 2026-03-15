@@ -5,7 +5,7 @@ import { query } from '../config/db.postgres';
 import { protect, AuthRequest } from '../middleware/auth.middleware';
 
 const router = Router();
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, { apiVersion: '2025-01-27.acacia' });
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, { apiVersion: '2025-01-27.acacia' } as any);
 
 // ─── Helper: Get MPesa Access Token ─────────────────────────────────────────
 const getMpesaToken = async (): Promise<string> => {
@@ -20,7 +20,7 @@ const getMpesaToken = async (): Promise<string> => {
 };
 
 // ─── STRIPE ─────────────────────────────────────────────────────────────────
-router.post('/stripe/create-intent', protect, async (req: AuthRequest, res: Response): Promise<void> => {
+router.post('/stripe/create-intent', protect as any, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { orderId, amount, currency = 'kes' } = req.body;
         const paymentIntent = await stripe.paymentIntents.create({
@@ -64,7 +64,7 @@ const getPaypalToken = async (): Promise<string> => {
     return res.data.access_token;
 };
 
-router.post('/paypal/create-order', protect, async (req: AuthRequest, res: Response): Promise<void> => {
+router.post('/paypal/create-order', protect as any, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { orderId, amount, currency = 'USD' } = req.body;
         const token = await getPaypalToken();
@@ -79,7 +79,7 @@ router.post('/paypal/create-order', protect, async (req: AuthRequest, res: Respo
     }
 });
 
-router.post('/paypal/capture', protect, async (req: AuthRequest, res: Response): Promise<void> => {
+router.post('/paypal/capture', protect as any, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { paypalOrderId, orderId } = req.body;
         const token = await getPaypalToken();
@@ -101,7 +101,7 @@ router.post('/paypal/capture', protect, async (req: AuthRequest, res: Response):
 });
 
 // ─── MPESA STK PUSH ─────────────────────────────────────────────────────────
-router.post('/mpesa/stkpush', protect, async (req: AuthRequest, res: Response): Promise<void> => {
+router.post('/mpesa/stkpush', protect as any, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { phone, amount, orderId } = req.body;
         const token = await getMpesaToken();
@@ -155,7 +155,7 @@ router.post('/mpesa/callback', async (req: Request, res: Response): Promise<void
 });
 
 // ─── CARD (Visa/Mastercard via Stripe) ──────────────────────────────────────
-router.post('/card/charge', protect, async (req: AuthRequest, res: Response): Promise<void> => {
+router.post('/card/charge', protect as any, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { orderId, paymentMethodId, amount, currency = 'kes' } = req.body;
         const paymentIntent = await stripe.paymentIntents.create({

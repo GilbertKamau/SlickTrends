@@ -7,7 +7,7 @@ import { protect, requireRole, AuthRequest } from '../middleware/auth.middleware
 const router = Router();
 
 // GET /api/superadmin/metrics - Dashboard metrics
-router.get('/metrics', protect, requireRole('superadmin'), async (req: AuthRequest, res: Response): Promise<void> => {
+router.get('/metrics', protect as any, requireRole('superadmin') as any, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const [
             totalOrdersRes, revenueRes, pendingRes, dispatchedRes, completedRes, cancelledRes,
@@ -61,7 +61,7 @@ router.get('/metrics', protect, requireRole('superadmin'), async (req: AuthReque
 });
 
 // GET /api/superadmin/users - All users
-router.get('/users', protect, requireRole('superadmin'), async (req: AuthRequest, res: Response): Promise<void> => {
+router.get('/users', protect as any, requireRole('superadmin') as any, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { role, page = 1, limit = 20 } = req.query;
         const filter: Record<string, unknown> = {};
@@ -78,7 +78,7 @@ router.get('/users', protect, requireRole('superadmin'), async (req: AuthRequest
 });
 
 // PATCH /api/superadmin/users/:id/status
-router.patch('/users/:id/status', protect, requireRole('superadmin'), async (req: AuthRequest, res: Response): Promise<void> => {
+router.patch('/users/:id/status', protect as any, requireRole('superadmin') as any, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { isActive } = req.body;
         await User.findByIdAndUpdate(req.params.id, { isActive });
@@ -89,7 +89,7 @@ router.patch('/users/:id/status', protect, requireRole('superadmin'), async (req
 });
 
 // GET /api/superadmin/transactions - All transactions
-router.get('/transactions', protect, requireRole('superadmin'), async (req: AuthRequest, res: Response): Promise<void> => {
+router.get('/transactions', protect as any, requireRole('superadmin') as any, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { method, status, page = 1, limit = 20 } = req.query;
         const offset = (Number(page) - 1) * Number(limit);
@@ -107,7 +107,7 @@ router.get('/transactions', protect, requireRole('superadmin'), async (req: Auth
 });
 
 // GET /api/superadmin/sales-trend - Daily sales for chart
-router.get('/sales-trend', protect, requireRole('superadmin'), async (req: AuthRequest, res: Response): Promise<void> => {
+router.get('/sales-trend', protect as any, requireRole('superadmin') as any, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { days = 30 } = req.query;
         const res2 = await query(

@@ -2,11 +2,14 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import mongoSanitize from 'express-mongo-sanitize';
+// import mongoSanitize from 'express-mongo-sanitize';
 import hpp from 'hpp';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 dotenv.config();
+
+import passport from 'passport';
+import { configurePassport } from './config/passport';
 
 import connectMongoDB from './config/db.mongo';
 import { getRedis, initRedis } from './config/redis';
@@ -15,8 +18,10 @@ import productRoutes from './routes/products.routes';
 import orderRoutes from './routes/orders.routes';
 import paymentRoutes from './routes/payments.routes';
 import superadminRoutes from './routes/superadmin.routes';
+import promotionRoutes from './routes/promotions.routes';
 import n8nRoutes from './routes/n8n.routes';
 import uploadRoutes from './routes/upload.routes';
+import { initProductCleanupJob } from './jobs/productCleanup';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -43,7 +48,7 @@ app.use(cors({
 app.use('/api', globalLimiter);
 
 // Sanitize data against NoSQL Query Injection
-app.use(mongoSanitize());
+// app.use(mongoSanitize());
 
 // Prevent HTTP Parameter Pollution
 app.use(hpp());
@@ -53,12 +58,17 @@ app.use('/api/payments/stripe/webhook', express.raw({ type: 'application/json' }
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Initialize Passport
+configurePassport();
+app.use(passport.initialize());
+
 // ─── Routes ──────────────────────────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/superadmin', superadminRoutes);
+app.use('/api/promotions', promotionRoutes);
 app.use('/api/n8n', n8nRoutes);
 app.use('/api/upload', uploadRoutes);
 
@@ -74,7 +84,7 @@ app.get('/api/health', (_, res) => {
 });
 
 // ─── 404 Handler ─────────────────────────────────────────────────────────────
-app.use('*', (_, res) => {
+app.use((req, res) => {
     res.status(404).json({ success: false, message: 'Route not found.' });
 });
 
@@ -89,6 +99,9 @@ const start = async () => {
         console.log(`🗄️  PostgreSQL Cloud: connected`);
         console.log(`📧 Email: SMTP via ${process.env.SMTP_HOST || 'smtp.gmail.com'}`);
         console.log(`🔴 Redis: ${process.env.REDIS_URL ? 'configured' : 'local fallback'}\n`);
+        
+        // Initialize jobs
+        initProductCleanupJob();
     });
 };
 

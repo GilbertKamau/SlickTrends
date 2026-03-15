@@ -9,6 +9,11 @@ interface User {
     role: 'customer' | 'admin' | 'superadmin';
     phone?: string;
     avatar?: string;
+    address?: {
+        street: string;
+        city: string;
+        postalCode: string;
+    };
 }
 
 interface AuthState {
@@ -19,6 +24,8 @@ interface AuthState {
     register: (data: { name: string; email: string; password: string; phone?: string }) => Promise<void>;
     logout: () => void;
     setUser: (user: User) => void;
+    setToken: (token: string) => void;
+    fetchMe: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -56,6 +63,21 @@ export const useAuthStore = create<AuthState>()(
                 set({ user: null, token: null });
             },
             setUser: (user) => set({ user }),
+            setToken: (token) => {
+                localStorage.setItem('slick_token', token);
+                set({ token });
+            },
+            fetchMe: async () => {
+                set({ isLoading: true });
+                try {
+                    const res = await api.get('/auth/me');
+                    set({ user: res.data.user, isLoading: false });
+                } catch (err) {
+                    set({ isLoading: false, user: null, token: null });
+                    localStorage.removeItem('slick_token');
+                    throw err;
+                }
+            },
         }),
         { name: 'slick_auth', partialize: (state) => ({ user: state.user, token: state.token }) }
     )

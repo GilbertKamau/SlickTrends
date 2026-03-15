@@ -25,7 +25,7 @@ async function clearAbandonedCart(email: string) {
 const router = Router();
 
 // POST /api/orders - Customer creates order
-router.post('/', protect, async (req: AuthRequest, res: Response): Promise<void> => {
+router.post('/', protect as any, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { items, shippingAddress, notes } = req.body;
         if (!items || !items.length || !shippingAddress) {
@@ -92,7 +92,7 @@ router.post('/', protect, async (req: AuthRequest, res: Response): Promise<void>
 
 
 // GET /api/orders/my - Customer's orders
-router.get('/my', protect, async (req: AuthRequest, res: Response): Promise<void> => {
+router.get('/my', protect as any, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const orders = await query('SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at DESC', [req.user!.id]);
         res.json({ success: true, orders: orders.rows });
@@ -102,7 +102,7 @@ router.get('/my', protect, async (req: AuthRequest, res: Response): Promise<void
 });
 
 // GET /api/orders/my/:id - Single order with items
-router.get('/my/:id', protect, async (req: AuthRequest, res: Response): Promise<void> => {
+router.get('/my/:id', protect as any, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const orderRes = await query('SELECT * FROM orders WHERE id = $1 AND user_id = $2', [req.params.id, req.user!.id]);
         if (!orderRes.rows.length) { res.status(404).json({ success: false, message: 'Order not found.' }); return; }
@@ -114,29 +114,74 @@ router.get('/my/:id', protect, async (req: AuthRequest, res: Response): Promise<
 });
 
 // GET /api/orders - Admin: all orders
-router.get('/', protect, requireRole('admin', 'superadmin'), async (req: AuthRequest, res: Response): Promise<void> => {
+router.get('/', protect as any, requireRole('admin', 'superadmin') as any, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { status, page = 1, limit = 20 } = req.query;
         const offset = (Number(page) - 1) * Number(limit);
-        let queryStr = 'SELECT * FROM orders';
+        
+        let queryStr = 'SELECT o.* FROM orders o';
+        let countQueryStr = 'SELECT COUNT(*) FROM orders o';
         const params: unknown[] = [];
-        if (status) { queryStr += ' WHERE status = $1'; params.push(status); }
-        queryStr += ` ORDER BY created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+        const whereClauses: string[] = [];
+
+        if (req.user!.role === 'admin') {
+            const myProducts = await Product.find({ addedBy: req.user!.id }, '_id');
+            const myProductIds = myProducts.map(p => p._id.toString());
+            
+            if (myProductIds.length === 0) {
+                res.json({ success: true, orders: [], total: 0 });
+                return;
+            }
+            
+            queryStr = 'SELECT DISTINCT o.* FROM orders o JOIN order_items oi ON o.id = oi.order_id';
+            countQueryStr = 'SELECT COUNT(DISTINCT o.id) FROM orders o JOIN order_items oi ON o.id = oi.order_id';
+            whereClauses.push(`oi.product_id = ANY($${params.length + 1})`);
+            params.push(myProductIds);
+        }
+
+        if (status) {
+            whereClauses.push(`o.status = $${params.length + 1}`);
+            params.push(status);
+        }
+
+        if (whereClauses.length > 0) {
+            const whereStr = ' WHERE ' + whereClauses.join(' AND ');
+            queryStr += whereStr;
+            countQueryStr += whereStr;
+        }
+
+        queryStr += ` ORDER BY o.created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
         params.push(limit, offset);
+
         const orders = await query(queryStr, params);
-        const countRes = await query(status ? 'SELECT COUNT(*) FROM orders WHERE status = $1' : 'SELECT COUNT(*) FROM orders', status ? [status] : []);
+        const countRes = await query(countQueryStr, params.slice(0, params.length - 2));
+        
         res.json({ success: true, orders: orders.rows, total: Number(countRes.rows[0].count) });
     } catch (err) {
+        console.error('Order fetch error:', err);
         res.status(500).json({ success: false, message: 'Server error.' });
     }
 });
 
 // GET /api/orders/:id - Admin: single order
-router.get('/:id', protect, requireRole('admin', 'superadmin'), async (req: AuthRequest, res: Response): Promise<void> => {
+router.get('/:id', protect as any, requireRole('admin', 'superadmin') as any, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const orderRes = await query('SELECT * FROM orders WHERE id = $1', [req.params.id]);
         if (!orderRes.rows.length) { res.status(404).json({ success: false, message: 'Order not found.' }); return; }
+        
         const itemsRes = await query('SELECT * FROM order_items WHERE order_id = $1', [req.params.id]);
+        
+        // Ownership check for admin
+        if (req.user!.role === 'admin') {
+            const myProducts = await Product.find({ addedBy: req.user!.id }, '_id');
+            const myProductIds = myProducts.map(p => p._id.toString());
+            const hasMyProduct = itemsRes.rows.some(item => myProductIds.includes(item.product_id));
+            if (!hasMyProduct) {
+                res.status(403).json({ success: false, message: 'Access denied. This order does not contain your products.' });
+                return;
+            }
+        }
+
         const txRes = await query('SELECT * FROM transactions WHERE order_id = $1', [req.params.id]);
         res.json({ success: true, order: { ...orderRes.rows[0], items: itemsRes.rows, transactions: txRes.rows } });
     } catch (err) {
@@ -145,7 +190,7 @@ router.get('/:id', protect, requireRole('admin', 'superadmin'), async (req: Auth
 });
 
 // PATCH /api/orders/:id/status - Admin: update order status + fire email
-router.patch('/:id/status', protect, requireRole('admin', 'superadmin'), async (req: AuthRequest, res: Response): Promise<void> => {
+router.patch('/:id/status', protect as any, requireRole('admin', 'superadmin') as any, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { status, cancellationReason } = req.body;
         const validStatuses = ['pending', 'confirmed', 'dispatched', 'delivered', 'cancelled', 'closed'];
@@ -159,6 +204,18 @@ router.patch('/:id/status', protect, requireRole('admin', 'superadmin'), async (
             res.status(404).json({ success: false, message: 'Order not found.' }); return;
         }
         const order = existing.rows[0];
+
+        // Ownership check for admin
+        if (req.user!.role === 'admin') {
+            const itemsRes = await query('SELECT product_id FROM order_items WHERE order_id = $1', [req.params.id]);
+            const myProducts = await Product.find({ addedBy: req.user!.id }, '_id');
+            const myProductIds = myProducts.map(p => p._id.toString());
+            const hasMyProduct = itemsRes.rows.some(item => myProductIds.includes(item.product_id));
+            if (!hasMyProduct) {
+                res.status(403).json({ success: false, message: 'Access denied. This order does not contain your products.' });
+                return;
+            }
+        }
 
         let updateQuery = 'UPDATE orders SET status = $1, updated_at = NOW()';
         const params: unknown[] = [status, req.params.id];
