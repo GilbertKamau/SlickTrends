@@ -33,7 +33,7 @@ function ProductsContent() {
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
-    const [showFilters, setShowFilters] = useState(false);
+    const [showMobileFilters, setShowMobileFilters] = useState(false);
     const [hasMounted, setHasMounted] = useState(false);
     const [filters, setFilters] = useState({
         category: searchParams.get('category') || '',
@@ -65,6 +65,60 @@ function ProductsContent() {
     useEffect(() => { setHasMounted(true); }, []);
     useEffect(() => { fetchProducts(1); setPage(1); }, [filters]);
 
+    const FilterContent = () => (
+        <div className="glass-card" style={{ padding: 24, position: 'sticky', top: 90 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.1rem' }}>Filters</h3>
+                {Object.values(filters).some(Boolean) && (
+                    <button onClick={() => setFilters({ category: '', condition: '', size: '', minPrice: '', maxPrice: '', search: '' })}
+                        style={{ background: 'none', border: 'none', color: '#6b5a8a', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.8rem' }}>
+                        <X size={12} /> Clear
+                    </button>
+                )}
+            </div>
+
+            <div style={{ marginBottom: 24 }}>
+                <label className="input-label">Category</label>
+                {CATEGORIES.map((c) => (
+                    <button key={c.value} onClick={() => setFilters(f => ({ ...f, category: c.value }))}
+                        style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px', borderRadius: 8, border: 'none', cursor: 'pointer', marginBottom: 4, fontSize: '0.875rem', background: filters.category === c.value ? 'rgba(212,175,55,0.15)' : 'transparent', color: filters.category === c.value ? '#d4af37' : '#b8a9d0', transition: 'all 0.2s' }}>
+                        {c.label}
+                    </button>
+                ))}
+            </div>
+
+            <div style={{ marginBottom: 24 }}>
+                <label className="input-label">Condition</label>
+                {CONDITIONS.map((c) => (
+                    <button key={c.value} onClick={() => setFilters(f => ({ ...f, condition: c.value }))}
+                        style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px', borderRadius: 8, border: 'none', cursor: 'pointer', marginBottom: 4, fontSize: '0.875rem', background: filters.condition === c.value ? 'rgba(212,175,55,0.15)' : 'transparent', color: filters.condition === c.value ? '#d4af37' : '#b8a9d0', transition: 'all 0.2s' }}>
+                        {c.label}
+                    </button>
+                ))}
+            </div>
+
+            <div style={{ marginBottom: 24 }}>
+                <label className="input-label">Size</label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {SIZES.map((s) => (
+                        <button key={s} onClick={() => setFilters(f => ({ ...f, size: s }))}
+                            style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid', fontSize: '0.75rem', cursor: 'pointer', borderColor: filters.size === s ? '#d4af37' : 'rgba(124,58,237,0.3)', background: filters.size === s ? 'rgba(212,175,55,0.15)' : 'transparent', color: filters.size === s ? '#d4af37' : '#b8a9d0' }}>
+                            {s || 'All'}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            <div>
+                <label className="input-label">Price Range (KES)</label>
+                <div style={{ display: 'flex', gap: 8 }}>
+                    <input className="input-field" placeholder="Min" value={filters.minPrice} onChange={(e) => setFilters(f => ({ ...f, minPrice: e.target.value }))} style={{ width: '50%', padding: '8px 12px', fontSize: '0.85rem' }} />
+                    <input className="input-field" placeholder="Max" value={filters.maxPrice} onChange={(e) => setFilters(f => ({ ...f, maxPrice: e.target.value }))} style={{ width: '50%', padding: '8px 12px', fontSize: '0.85rem' }} />
+                </div>
+            </div>
+        </div>
+    );
+
     return (
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
             <Navbar />
@@ -75,7 +129,7 @@ function ProductsContent() {
                         <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '2.5rem', marginBottom: 8 }}>
                             {filters.category ? CATEGORIES.find(c => c.value === filters.category)?.label : 'All Products'}
                         </h1>
-                        <p style={{ color: '#b8a9d0' }}>{total} items available</p>
+                        <p style={{ color: 'var(--text-secondary)' }}>{total} items available</p>
 
                         {/* Search */}
                         <div style={{ position: 'relative', maxWidth: 500, marginTop: 24 }}>
@@ -93,71 +147,37 @@ function ProductsContent() {
 
                 <div className="container" style={{ display: 'flex', gap: 32, padding: '40px 24px' }}>
                     {/* Sidebar Filters */}
-                    <aside style={{ width: 240, flexShrink: 0, display: showFilters || (hasMounted && window.innerWidth > 768) ? 'block' : 'none' }}>
-                        <div className="glass-card" style={{ padding: 24, position: 'sticky', top: 90 }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                                <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.1rem' }}>Filters</h3>
-                                {Object.values(filters).some(Boolean) && (
-                                    <button onClick={() => setFilters({ category: '', condition: '', size: '', minPrice: '', maxPrice: '', search: '' })}
-                                        style={{ background: 'none', border: 'none', color: '#6b5a8a', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.8rem' }}>
-                                        <X size={12} /> Clear
-                                    </button>
-                                )}
-                            </div>
-
-                            {/* Category */}
-                            <div style={{ marginBottom: 24 }}>
-                                <label className="input-label">Category</label>
-                                {CATEGORIES.map((c) => (
-                                    <button key={c.value} onClick={() => setFilters(f => ({ ...f, category: c.value }))}
-                                        style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px', borderRadius: 8, border: 'none', cursor: 'pointer', marginBottom: 4, fontSize: '0.875rem', background: filters.category === c.value ? 'rgba(212,175,55,0.15)' : 'transparent', color: filters.category === c.value ? '#d4af37' : '#b8a9d0', transition: 'all 0.2s' }}>
-                                        {c.label}
-                                    </button>
-                                ))}
-                            </div>
-
-                            {/* Condition */}
-                            <div style={{ marginBottom: 24 }}>
-                                <label className="input-label">Condition</label>
-                                {CONDITIONS.map((c) => (
-                                    <button key={c.value} onClick={() => setFilters(f => ({ ...f, condition: c.value }))}
-                                        style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px', borderRadius: 8, border: 'none', cursor: 'pointer', marginBottom: 4, fontSize: '0.875rem', background: filters.condition === c.value ? 'rgba(212,175,55,0.15)' : 'transparent', color: filters.condition === c.value ? '#d4af37' : '#b8a9d0', transition: 'all 0.2s' }}>
-                                        {c.label}
-                                    </button>
-                                ))}
-                            </div>
-
-                            {/* Size */}
-                            <div style={{ marginBottom: 24 }}>
-                                <label className="input-label">Size</label>
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                                    {SIZES.map((s) => (
-                                        <button key={s} onClick={() => setFilters(f => ({ ...f, size: s }))}
-                                            style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid', fontSize: '0.75rem', cursor: 'pointer', borderColor: filters.size === s ? '#d4af37' : 'rgba(124,58,237,0.3)', background: filters.size === s ? 'rgba(212,175,55,0.15)' : 'transparent', color: filters.size === s ? '#d4af37' : '#b8a9d0' }}>
-                                            {s || 'All'}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Price Range */}
-                            <div>
-                                <label className="input-label">Price Range (KES)</label>
-                                <div style={{ display: 'flex', gap: 8 }}>
-                                    <input className="input-field" placeholder="Min" value={filters.minPrice} onChange={(e) => setFilters(f => ({ ...f, minPrice: e.target.value }))} style={{ width: '50%', padding: '8px 12px', fontSize: '0.85rem' }} />
-                                    <input className="input-field" placeholder="Max" value={filters.maxPrice} onChange={(e) => setFilters(f => ({ ...f, maxPrice: e.target.value }))} style={{ width: '50%', padding: '8px 12px', fontSize: '0.85rem' }} />
-                                </div>
-                            </div>
-                        </div>
+                    {/* Sidebar Filters (Desktop) */}
+                    <aside className="desktop-only" style={{ width: 240, flexShrink: 0 }}>
+                        <FilterContent />
                     </aside>
+
+                    {/* Mobile Filter Drawer */}
+                    <div className={`mobile-drawer-overlay ${showMobileFilters ? 'active' : ''}`} onClick={() => setShowMobileFilters(false)} />
+                    <div className={`mobile-drawer ${showMobileFilters ? 'active' : ''}`}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                            <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.2rem' }}>Filters</h3>
+                            <button onClick={() => setShowMobileFilters(false)} style={{ background: 'none', border: 'none', color: '#b8a9d0' }}>
+                                <X size={24} />
+                            </button>
+                        </div>
+                        <FilterContent />
+                        <button 
+                            className="btn-primary" 
+                            style={{ width: '100%', marginTop: 24, justifyContent: 'center' }}
+                            onClick={() => setShowMobileFilters(false)}
+                        >
+                            Show Results
+                        </button>
+                    </div>
 
                     {/* Products Grid */}
                     <div style={{ flex: 1 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                            <button onClick={() => setShowFilters(!showFilters)} className="btn-ghost" style={{ fontSize: '0.875rem' }}>
+                            <button onClick={() => setShowMobileFilters(true)} className="mobile-only btn-ghost" style={{ fontSize: '0.875rem' }}>
                                 <SlidersHorizontal size={15} /> Filters
                             </button>
-                            <p style={{ color: '#6b5a8a', fontSize: '0.875rem' }}>{total} products</p>
+                            <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>{total} products</p>
                         </div>
 
                         {loading ? (

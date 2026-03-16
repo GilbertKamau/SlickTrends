@@ -176,16 +176,39 @@ export default function Navbar() {
                 </div>
             </div>
 
-            {/* Mobile Menu */}
-            {mobileOpen && (
-                <div style={{ background: 'rgba(10,0,18,0.98)', borderTop: '1px solid rgba(124,58,237,0.2)', padding: '16px 24px 24px' }}>
-                    <Link href="/" style={{ display: 'block', padding: '12px 0', color: '#b8a9d0', textDecoration: 'none', borderBottom: '1px solid rgba(124,58,237,0.1)' }} onClick={() => setMobileOpen(false)}>Home</Link>
-                    {categories.map((c) => (
-                        <Link key={c.label} href={c.href} style={{ display: 'block', padding: '12px 0', color: '#b8a9d0', textDecoration: 'none', borderBottom: '1px solid rgba(124,58,237,0.1)', fontSize: '0.9rem' }} onClick={() => setMobileOpen(false)}>{c.label}</Link>
-                    ))}
-                    {!user && <Link href="/auth/login" className="btn-primary" style={{ display: 'inline-flex', marginTop: 16, textDecoration: 'none' }} onClick={() => setMobileOpen(false)}>Sign In</Link>}
+            {/* Mobile Menu Drawer */}
+            <div className={`mobile-drawer-overlay ${mobileOpen ? 'active' : ''}`} onClick={() => setMobileOpen(false)} />
+            <div className={`mobile-drawer ${mobileOpen ? 'active' : ''}`}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                    <span style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.2rem', fontWeight: 700, color: 'var(--accent-gold)' }}>Menu</span>
+                    <button onClick={() => setMobileOpen(false)} style={{ background: 'var(--bg-card)', border: '1px solid var(--glass-border)', color: 'var(--text-secondary)', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <X size={20} />
+                    </button>
                 </div>
-            )}
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <Link href="/" style={{ padding: '14px 16px', color: pathname === '/' ? 'var(--accent-gold)' : 'var(--text-secondary)', textDecoration: 'none', borderRadius: 12, background: pathname === '/' ? 'rgba(176,141,26,0.1)' : 'transparent', fontWeight: 600 }} onClick={() => setMobileOpen(false)}>Home</Link>
+                    <Link href="/products" style={{ padding: '14px 16px', color: pathname === '/products' ? 'var(--accent-gold)' : 'var(--text-secondary)', textDecoration: 'none', borderRadius: 12, background: pathname === '/products' ? 'rgba(176,141,26,0.1)' : 'transparent', fontWeight: 600 }} onClick={() => setMobileOpen(false)}>All Products</Link>
+                    
+                    <div style={{ height: 1, background: 'var(--glass-border)', margin: '8px 0' }} />
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 1, padding: '0 16px', marginBottom: 4 }}>Categories</p>
+                    
+                    {categories.map((c) => (
+                        <Link key={c.label} href={c.href} style={{ padding: '12px 16px', color: 'var(--text-secondary)', textDecoration: 'none', borderRadius: 12, fontSize: '0.95rem', fontWeight: 500 }} onClick={() => setMobileOpen(false)}>{c.label}</Link>
+                    ))}
+
+                    <div style={{ height: 1, background: 'var(--glass-border)', margin: '8px 0' }} />
+                    {!user ? (
+                        <Link href="/auth/login" className="btn-primary" style={{ marginTop: 8, justifyContent: 'center' }} onClick={() => setMobileOpen(false)}>Sign In</Link>
+                    ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            <Link href="/profile" style={{ padding: '12px 16px', color: 'var(--text-secondary)', textDecoration: 'none' }} onClick={() => setMobileOpen(false)}>My Profile</Link>
+                            <Link href="/orders" style={{ padding: '12px 16px', color: 'var(--text-secondary)', textDecoration: 'none' }} onClick={() => setMobileOpen(false)}>My Orders</Link>
+                            <button onClick={handleLogout} style={{ padding: '12px 16px', color: '#dc2626', background: 'none', border: 'none', textAlign: 'left', fontSize: '1rem', cursor: 'pointer', fontWeight: 500 }}>Logout</button>
+                        </div>
+                    )}
+                </div>
+            </div>
         </nav>
     );
 }

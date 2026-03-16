@@ -86,7 +86,7 @@ export default function ProductCard({ product }: { product: Product }) {
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 fontWeight: 900, fontSize: '1.5rem', textTransform: 'uppercase',
                                 transform: 'rotate(-35deg)', letterSpacing: 4,
-                                boxShadow: '0 4px 15px rgba(239,68,68,0.5)', borderY: '2px solid white'
+                                boxShadow: '0 4px 15px rgba(239,68,68,0.5)', borderTop: '2px solid white', borderBottom: '2px solid white'
                             }}>
                                 SOLD
                             </div>
@@ -95,44 +95,56 @@ export default function ProductCard({ product }: { product: Product }) {
                 </div>
 
                 {/* Content */}
-                <div style={{ padding: 16 }}>
-                    <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
-                        <span className={`badge ${conditionColors[product.condition] || 'badge-purple'}`}>{product.condition}</span>
-                        <span className="badge badge-purple">{product.size}</span>
+                <div style={{ padding: 12 }}>
+                    <div style={{ display: 'flex', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
+                        <span className={`badge ${conditionColors[product.condition] || 'badge-purple'}`} style={{ fontSize: '0.65rem' }}>{product.condition}</span>
+                        <span className="badge badge-purple" style={{ fontSize: '0.65rem' }}>{product.size}</span>
                     </div>
-                    <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: '#f5f0ff', marginBottom: 8, fontFamily: 'Inter, sans-serif', lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    <h3 style={{ 
+                        fontSize: '0.9rem', 
+                        fontWeight: 600, 
+                        color: 'var(--text-primary)', 
+                        marginBottom: 6, 
+                        fontFamily: 'Inter, sans-serif', 
+                        lineHeight: 1.3, 
+                        display: '-webkit-box', 
+                        WebkitLineClamp: 2, 
+                        WebkitBoxOrient: 'vertical', 
+                        overflow: 'hidden',
+                        height: '2.6em' // Fixed height for alignment
+                    }}>
                         {product.name}
                     </h3>
-                    <p style={{ fontSize: '0.8rem', color: '#6b5a8a', marginBottom: 14, textTransform: 'capitalize' }}>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: 12, textTransform: 'capitalize' }}>
                         {product.category.replace('-', ' ')}
                     </p>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <div>
-                            <span style={{ fontSize: '1.15rem', fontWeight: 700, color: '#d4af37' }}>KES {product.price.toLocaleString()}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--accent-gold)' }}>KES {product.price.toLocaleString()}</span>
                             {product.originalPrice && (
-                                <span style={{ fontSize: '0.8rem', color: '#6b5a8a', textDecoration: 'line-through', marginLeft: 8 }}>KES {product.originalPrice.toLocaleString()}</span>
+                                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textDecoration: 'line-through' }}>KES {product.originalPrice.toLocaleString()}</span>
                             )}
                         </div>
-                        <div style={{ display: 'flex', gap: 8 }}>
+                        <div style={{ display: 'flex', gap: 6 }}>
                             <button onClick={handleWhatsAppClick}
                                 style={{
-                                    width: 36, height: 36, borderRadius: 8,
+                                    width: 42, height: 42, borderRadius: 10,
                                     background: 'linear-gradient(135deg, #25D366, #128C7E)',
                                     border: 'none', cursor: 'pointer',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                     transition: 'all 0.2s',
                                 }} title="Inquire via WhatsApp">
-                                <MessageCircle size={16} color="#ffffff" />
+                                <MessageCircle size={18} color="#ffffff" />
                             </button>
                             <button onClick={handleAddToCart} disabled={product.stock === 0 || product.isSold}
                                 style={{
-                                    width: 36, height: 36, borderRadius: 8,
+                                    width: 42, height: 42, borderRadius: 10,
                                     background: (product.stock === 0 || product.isSold) ? 'rgba(255,255,255,0.05)' : 'linear-gradient(135deg, #d4af37, #f0d060)',
                                     border: 'none', cursor: (product.stock === 0 || product.isSold) ? 'not-allowed' : 'pointer',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                     transition: 'all 0.2s',
                                 }} title={product.isSold ? "Item Sold" : "Add to Cart"}>
-                                <ShoppingBag size={16} color="#0a0012" />
+                                <ShoppingBag size={18} color="#0a0012" />
                             </button>
                         </div>
                     </div>

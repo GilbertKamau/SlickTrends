@@ -7,6 +7,7 @@ import { AdminSidebar } from '../page';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import toast from 'react-hot-toast';
+import CustomSelect from '@/components/CustomSelect';
 
 const EMPTY_FORM = { name: '', description: '', category: 'robes', size: 'M', condition: 'good', price: '', originalPrice: '', stock: '', brand: '', color: '', material: '', isFeatured: false, images: [''] };
 const CATEGORIES = ['robes', 'onesies', 'pajamas', 'night-dresses', 'baby-onesies', 'pre-teen-robes', 'baby-robes'];
@@ -81,22 +82,31 @@ export default function AdminStockPage() {
                                     <textarea className="input-field" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} required rows={3} placeholder="Describe the item, its features..." style={{ resize: 'vertical' }} />
                                 </div>
                                 <div>
-                                    <label className="input-label">Category *</label>
-                                    <select className="input-field" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}>
-                                        {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                                    </select>
+                                    <CustomSelect 
+                                        label="Category" 
+                                        required 
+                                        options={CATEGORIES} 
+                                        value={form.category} 
+                                        onChange={(v) => setForm(f => ({ ...f, category: v }))} 
+                                    />
                                 </div>
                                 <div>
-                                    <label className="input-label">Size *</label>
-                                    <select className="input-field" value={form.size} onChange={e => setForm(f => ({ ...f, size: e.target.value }))}>
-                                        {SIZES.map(s => <option key={s} value={s}>{s}</option>)}
-                                    </select>
+                                    <CustomSelect 
+                                        label="Size" 
+                                        required 
+                                        options={SIZES} 
+                                        value={form.size} 
+                                        onChange={(v) => setForm(f => ({ ...f, size: v }))} 
+                                    />
                                 </div>
                                 <div>
-                                    <label className="input-label">Condition *</label>
-                                    <select className="input-field" value={form.condition} onChange={e => setForm(f => ({ ...f, condition: e.target.value }))}>
-                                        {CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
-                                    </select>
+                                    <CustomSelect 
+                                        label="Condition" 
+                                        required 
+                                        options={CONDITIONS} 
+                                        value={form.condition} 
+                                        onChange={(v) => setForm(f => ({ ...f, condition: v }))} 
+                                    />
                                 </div>
                                 <div>
                                     <label className="input-label">Price (KES) *</label>
