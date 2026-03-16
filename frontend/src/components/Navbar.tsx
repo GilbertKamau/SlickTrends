@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ShoppingBag, Menu, X, User, LogOut, ChevronDown, Star, Sun, Moon, Megaphone } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useCartStore } from '@/store/cartStore';
@@ -25,6 +25,14 @@ export default function Navbar() {
     const [catOpen, setCatOpen] = useState(false);
     const [userOpen, setUserOpen] = useState(false);
     const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+    const [hasMounted, setHasMounted] = useState(false);
+
+    useEffect(() => {
+        setHasMounted(true);
+        // Load theme after mount
+        const savedTheme = document.documentElement.getAttribute('data-theme') as 'dark' | 'light';
+        if (savedTheme) setTheme(savedTheme);
+    }, []);
 
     const toggleTheme = () => {
         const newTheme = theme === 'dark' ? 'light' : 'dark';
@@ -102,7 +110,7 @@ export default function Navbar() {
                     {/* Cart */}
                     <Link href="/cart" style={{ position: 'relative', textDecoration: 'none', color: '#b8a9d0', display: 'flex', alignItems: 'center', padding: '8px' }}>
                         <ShoppingBag size={22} />
-                        {itemCount > 0 && (
+                        {hasMounted && itemCount > 0 && (
                             <span style={{
                                 position: 'absolute', top: 0, right: 0,
                                 background: '#d4af37', color: '#0a0012',
@@ -118,11 +126,11 @@ export default function Navbar() {
                         background: 'none', border: 'none', color: '#b8a9d0',
                         cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '8px'
                     }}>
-                        {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+                        {hasMounted && (theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />)}
                     </button>
 
                     {/* User Menu */}
-                    {user ? (
+                    {hasMounted && user ? (
                         <div style={{ position: 'relative' }}>
                             <button onClick={() => setUserOpen(!userOpen)} style={{
                                 display: 'flex', alignItems: 'center', gap: 8,
@@ -157,9 +165,9 @@ export default function Navbar() {
                                 </div>
                             )}
                         </div>
-                    ) : (
+                    ) : hasMounted ? (
                         <Link href="/auth/login" className="btn-primary" style={{ padding: '9px 20px', fontSize: '0.875rem', textDecoration: 'none' }}>Sign In</Link>
-                    )}
+                    ) : null}
 
                     {/* Mobile Menu Toggle */}
                     <button onClick={() => setMobileOpen(!mobileOpen)} style={{ display: 'none', background: 'none', border: 'none', color: '#b8a9d0', cursor: 'pointer' }} className="mobile-toggle">

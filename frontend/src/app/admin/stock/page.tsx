@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Plus, Edit3, Trash2, Package, ArrowLeft, Save } from 'lucide-react';
+import { Plus, Edit3, Trash2, Package, ArrowLeft, Save, X } from 'lucide-react';
 import { AdminSidebar } from '../page';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';

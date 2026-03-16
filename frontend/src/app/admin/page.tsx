@@ -10,6 +10,12 @@ import toast from 'react-hot-toast';
 function AdminSidebar({ active, onClose }: { active: string; onClose?: () => void }) {
     const { user, logout } = useAuthStore();
     const router = useRouter();
+    const [hasMounted, setHasMounted] = useState(false);
+
+    useEffect(() => {
+        setHasMounted(true);
+    }, []);
+
     const navItems = [
         { href: '/admin', label: 'Dashboard', icon: TrendingUp },
         { href: '/admin/stock', label: 'Manage Stock', icon: Package },
@@ -28,7 +34,9 @@ function AdminSidebar({ active, onClose }: { active: string; onClose?: () => voi
                 ))}
             </nav>
             <div style={{ marginTop: 'auto', paddingTop: 20, borderTop: '1px solid rgba(124,58,237,0.2)' }}>
-                <div style={{ fontSize: '0.8rem', color: '#6b5a8a', marginBottom: 12 }}>{user?.name}<br /><span style={{ color: '#a855f7' }}>● Admin</span></div>
+                {hasMounted && (
+                    <div style={{ fontSize: '0.8rem', color: '#6b5a8a', marginBottom: 12 }}>{user?.name}<br /><span style={{ color: '#a855f7' }}>● Admin</span></div>
+                )}
                 <button onClick={() => { logout(); router.push('/auth/login'); }} style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem' }}>
                     <LogOut size={14} /> Logout
                 </button>

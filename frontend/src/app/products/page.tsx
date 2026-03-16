@@ -34,6 +34,7 @@ function ProductsContent() {
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [showFilters, setShowFilters] = useState(false);
+    const [hasMounted, setHasMounted] = useState(false);
     const [filters, setFilters] = useState({
         category: searchParams.get('category') || '',
         condition: '',
@@ -61,6 +62,7 @@ function ProductsContent() {
         } catch { /* silent */ } finally { setLoading(false); }
     };
 
+    useEffect(() => { setHasMounted(true); }, []);
     useEffect(() => { fetchProducts(1); setPage(1); }, [filters]);
 
     return (
@@ -91,7 +93,7 @@ function ProductsContent() {
 
                 <div className="container" style={{ display: 'flex', gap: 32, padding: '40px 24px' }}>
                     {/* Sidebar Filters */}
-                    <aside style={{ width: 240, flexShrink: 0, display: showFilters || typeof window !== 'undefined' && window.innerWidth > 768 ? 'block' : 'none' }}>
+                    <aside style={{ width: 240, flexShrink: 0, display: showFilters || (hasMounted && window.innerWidth > 768) ? 'block' : 'none' }}>
                         <div className="glass-card" style={{ padding: 24, position: 'sticky', top: 90 }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
                                 <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.1rem' }}>Filters</h3>

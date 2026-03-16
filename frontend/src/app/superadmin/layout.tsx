@@ -9,6 +9,12 @@ function SuperAdminSidebar() {
     const { user, logout } = useAuthStore();
     const router = useRouter();
     const pathname = usePathname();
+    const [hasMounted, setHasMounted] = useState(false);
+
+    useEffect(() => {
+        setHasMounted(true);
+    }, []);
+
     const nav = [
         { href: '/superadmin', label: 'Metrics', icon: TrendingUp },
         { href: '/superadmin/users', label: 'Users', icon: Users },
@@ -38,8 +44,12 @@ function SuperAdminSidebar() {
             </nav>
 
             <div style={{ marginTop: 'auto', paddingTop: 20, borderTop: '1px solid rgba(212,175,55,0.1)' }}>
-                <div style={{ fontSize: '0.85rem', color: '#f5f0ff', fontWeight: 600, marginBottom: 4 }}>{user?.name}</div>
-                <div style={{ fontSize: '0.75rem', color: '#d4af37', marginBottom: 16 }}>⭐ Super Admin</div>
+                {hasMounted && (
+                    <>
+                        <div style={{ fontSize: '0.85rem', color: '#f5f0ff', fontWeight: 600, marginBottom: 4 }}>{user?.name}</div>
+                        <div style={{ fontSize: '0.75rem', color: '#d4af37', marginBottom: 16 }}>⭐ Super Admin</div>
+                    </>
+                )}
                 <button onClick={() => { logout(); router.push('/auth/login'); }} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '10px', borderRadius: 8, color: '#ef4444', background: 'rgba(239,68,68,0.1)', border: 'none', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, transition: 'all 0.2s' }}>
                     <LogOut size={14} /> Logout
                 </button>
