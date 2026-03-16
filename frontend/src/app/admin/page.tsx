@@ -71,8 +71,15 @@ export default function AdminDashboard() {
                 recentOrders: (ordersData.orders || []).slice(0, 5),
             });
 
-            if (prodRes.status === 'rejected' || ordersRes.status === 'rejected') {
-                toast.error('Some statistics could not be loaded');
+            if (prodRes.status === 'rejected') {
+                const msg = (prodRes.reason as any)?.response?.data?.message || 'Failed to load products count';
+                const detail = (prodRes.reason as any)?.response?.data?.error;
+                toast.error(detail ? `${msg}: ${detail}` : msg);
+            }
+            if (ordersRes.status === 'rejected') {
+                const msg = (ordersRes.reason as any)?.response?.data?.message || 'Failed to load orders stats';
+                const detail = (ordersRes.reason as any)?.response?.data?.error;
+                toast.error(detail ? `${msg}: ${detail}` : msg);
             }
         } catch (err) {
             console.error('Stats fetch error:', err);
