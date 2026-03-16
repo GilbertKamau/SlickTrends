@@ -110,7 +110,8 @@ router.get('/admin/all', protect as any, requireRole('admin', 'superadmin') as a
         
         res.json({ success: true, products, total, page: Number(page), pages: Math.ceil(total / Number(limit)) });
     } catch (err: any) {
-        console.error('[CRITICAL ERROR] Admin products fetch failed:', err.message, err.stack);
+        const errorLog = `[${new Date().toISOString()}] Admin products fetch failed: ${err.message}\n${err.stack}\n\n`;
+        require('fs').appendFileSync('error.log', errorLog);
         res.status(500).json({ 
             success: false, 
             message: 'Failed to fetch admin products.', 

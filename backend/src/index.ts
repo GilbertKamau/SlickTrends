@@ -88,6 +88,18 @@ app.use((req, res) => {
     res.status(404).json({ success: false, message: 'Route not found.' });
 });
 
+// ─── Global Error Handler ────────────────────────────────────────────────────
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    console.error('[GLOBAL ERROR]', err);
+    const errorLog = `[${new Date().toISOString()}] GLOBAL ERROR: ${err.message}\n${err.stack}\n\n`;
+    require('fs').appendFileSync('error.log', errorLog);
+    res.status(500).json({ 
+        success: false, 
+        message: 'Internal server error.',
+        error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+});
+
 // ─── Start Server ─────────────────────────────────────────────────────────────
 const start = async () => {
     await connectMongoDB();

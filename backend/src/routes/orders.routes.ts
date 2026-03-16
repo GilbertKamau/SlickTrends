@@ -158,7 +158,8 @@ router.get('/', protect as any, requireRole('admin', 'superadmin') as any, async
         
         res.json({ success: true, orders: orders.rows, total: Number(countRes.rows[0]?.count || 0) });
     } catch (err: any) {
-        console.error('[CRITICAL ERROR] Order fetch error:', err.message, err.stack);
+        const errorLog = `[${new Date().toISOString()}] Admin orders fetch failed: ${err.message}\n${err.stack}\n\n`;
+        require('fs').appendFileSync('error.log', errorLog);
         res.status(500).json({ 
             success: false, 
             message: 'Failed to fetch orders.', 

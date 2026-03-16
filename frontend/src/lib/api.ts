@@ -16,8 +16,10 @@ api.interceptors.request.use((config) => {
 
 // Handle 401 globally
 api.interceptors.response.use(
-    (res) => res,
     (err) => {
+        if (err.response?.status === 500) {
+            console.error('🔥 BACKEND 500 ERROR:', err.response.data);
+        }
         if (err.response?.status === 401 && typeof window !== 'undefined') {
             localStorage.removeItem('slick_token');
             localStorage.removeItem('slick_user');
