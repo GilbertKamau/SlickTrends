@@ -12,7 +12,7 @@ export const initRedis = async () => {
     try {
         // You can use the URL we placed in .env, OR use the object structure
         redisClient = createClient({
-            url: process.env.REDIS_URL, // e.g. redis://default:7RDm80E6ok6q25X2HWIeODyimvUjvBIx@redis-13340.crce199.us-west-2-2.ec2.cloud.redislabs.com:13340
+            url: process.env.REDIS_URL, // Use the URL provided in environment variables
             socket: {
                 connectTimeout: 5000
             }

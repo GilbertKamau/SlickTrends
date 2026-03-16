@@ -119,34 +119,51 @@ export default function AdminStockPage() {
                                     <input className="input-field" value={form.color} onChange={e => setForm(f => ({ ...f, color: e.target.value }))} placeholder="e.g. Navy Blue" />
                                 </div>
                                 <div>
-                                    <label className="input-label">Product Image</label>
+                                    <label className="input-label">Product Images (Upload up to 5)</label>
                                     <input
                                         type="file"
                                         accept="image/*"
+                                        multiple
                                         className="input-field"
+                                        style={{ marginBottom: 12 }}
                                         onChange={async (e) => {
-                                            const file = e.target.files?.[0];
-                                            if (!file) return;
-                                            const toastId = toast.loading('Uploading image...');
+                                            const files = Array.from(e.target.files || []);
+                                            if (files.length === 0) return;
+                                            
+                                            const toastId = toast.loading(`Uploading ${files.length} image(s)...`);
                                             try {
-                                                const formData = new FormData();
-                                                formData.append('image', file);
-                                                const res = await api.post('/upload', formData, {
-                                                    headers: { 'Content-Type': 'multipart/form-data' }
-                                                });
-                                                setForm(f => ({ ...f, images: [res.data.url] }));
-                                                toast.success('Image uploaded!', { id: toastId });
+                                                const uploadedUrls: string[] = [];
+                                                for (const file of files) {
+                                                    const formData = new FormData();
+                                                    formData.append('image', file);
+                                                    const res = await api.post('/upload', formData, {
+                                                        headers: { 'Content-Type': 'multipart/form-data' }
+                                                    });
+                                                    uploadedUrls.push(res.data.url);
+                                                }
+                                                setForm(f => ({ ...f, images: [...(f.images || []), ...uploadedUrls].filter(url => url !== '') }));
+                                                toast.success('Images uploaded!', { id: toastId });
                                             } catch (err) {
                                                 toast.error('Upload failed. Check size/format.', { id: toastId });
                                                 console.error(err);
                                             }
                                         }}
                                     />
-                                    {form.images[0] && (
-                                        <div style={{ marginTop: 8, fontSize: '0.8rem', color: '#10b981' }}>
-                                            ✓ Image ready ({form.images[0].substring(0, 30)}...)
-                                        </div>
-                                    )}
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                                        {form.images.filter(url => url !== '').map((url, idx) => (
+                                            <div key={idx} style={{ position: 'relative', width: 80, height: 80, borderRadius: 8, overflow: 'hidden', border: '1px solid rgba(124,58,237,0.3)' }}>
+                                                <img src={url} alt={`Preview ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                <button 
+                                                    type="button"
+                                                    onClick={() => setForm(f => ({ ...f, images: f.images.filter((_, i) => i !== idx) }))}
+                                                    style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(239,68,68,0.8)', color: 'white', border: 'none', borderRadius: '50%', width: 20, height: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}
+                                                >
+                                                    <X size={12} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    {form.images.length === 0 && <p style={{ fontSize: '0.8rem', color: '#6b5a8a', marginTop: 4 }}>No images uploaded yet.</p>}
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                                     <input type="checkbox" id="featured" checked={form.isFeatured} onChange={e => setForm(f => ({ ...f, isFeatured: e.target.checked }))} style={{ width: 18, height: 18, cursor: 'pointer' }} />
