@@ -170,7 +170,7 @@ export default function Navbar() {
                     ) : null}
 
                     {/* Mobile Menu Toggle */}
-                    <button onClick={() => setMobileOpen(!mobileOpen)} style={{ display: 'none', background: 'none', border: 'none', color: '#b8a9d0', cursor: 'pointer' }} className="mobile-toggle">
+                    <button onClick={() => setMobileOpen(!mobileOpen)} style={{ display: 'none', background: 'none', border: 'none', color: '#b8a9d0', cursor: 'pointer' }} className="mobile-toggle mobile-only">
                         {mobileOpen ? <X size={24} /> : <Menu size={24} />}
                     </button>
                 </div>

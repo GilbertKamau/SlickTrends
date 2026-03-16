@@ -151,14 +151,15 @@ router.get('/', protect as any, requireRole('admin', 'superadmin') as any, async
         }
 
         queryStr += ` ORDER BY o.created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
-        params.push(limit, offset);
+        params.push(Number(limit), Number(offset));
 
         const orders = await query(queryStr, params);
         const countRes = await query(countQueryStr, params.slice(0, params.length - 2));
         
+        console.log(`[DEBUG] Found ${countRes.rows[0].count} orders for admin.`);
         res.json({ success: true, orders: orders.rows, total: Number(countRes.rows[0].count) });
     } catch (err) {
-        console.error('Order fetch error:', err);
+        console.error('[ERROR] Order fetch error:', err);
         res.status(500).json({ success: false, message: 'Server error.' });
     }
 });

@@ -53,18 +53,31 @@ export default function AdminDashboard() {
 
     const fetchStats = useCallback(async () => {
         try {
-            const [prodRes, ordersRes] = await Promise.all([
+            const [prodRes, ordersRes] = await Promise.allSettled([
                 api.get('/products/admin/all?limit=1'),
                 api.get('/orders?limit=10'),
             ]);
-            const orders = ordersRes.data.orders || [];
+            
+            const prodData = prodRes.status === 'fulfilled' ? prodRes.value.data : { total: 0 };
+            const ordersData = ordersRes.status === 'fulfilled' ? ordersRes.value.data : { orders: [], total: 0 };
+            
+            if (prodRes.status === 'rejected') console.error('Products fetch error:', prodRes.reason);
+            if (ordersRes.status === 'rejected') console.error('Orders fetch error:', ordersRes.reason);
+
             setStats({
-                totalProducts: prodRes.data.total || 0,
-                pendingOrders: orders.filter((o: { status: string }) => o.status === 'pending').length,
-                dispatchedOrders: orders.filter((o: { status: string }) => o.status === 'dispatched').length,
-                recentOrders: orders.slice(0, 5),
+                totalProducts: prodData.total || 0,
+                pendingOrders: (ordersData.orders || []).filter((o: any) => o.status === 'pending').length,
+                dispatchedOrders: (ordersData.orders || []).filter((o: any) => o.status === 'dispatched').length,
+                recentOrders: (ordersData.orders || []).slice(0, 5),
             });
-        } catch { /* silent */ } finally { setLoading(false); }
+
+            if (prodRes.status === 'rejected' || ordersRes.status === 'rejected') {
+                toast.error('Some statistics could not be loaded');
+            }
+        } catch (err) {
+            console.error('Stats fetch error:', err);
+            toast.error('Failed to load dashboard statistics');
+        } finally { setLoading(false); }
     }, []);
 
     useEffect(() => {

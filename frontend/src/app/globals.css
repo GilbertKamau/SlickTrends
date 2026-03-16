@@ -317,10 +317,12 @@ h1, h2, h3 { font-family: 'Playfair Display', serif; }
   opacity: 0;
   visibility: hidden;
   transition: all 0.3s ease;
+  display: none; /* Hidden by default */
 }
 .mobile-drawer-overlay.active {
   opacity: 1;
   visibility: visible;
+  display: block;
 }
 
 .mobile-drawer {
@@ -338,7 +340,17 @@ h1, h2, h3 { font-family: 'Playfair Display', serif; }
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   padding: 24px;
   overflow-y: auto;
+  display: none; /* Hidden by default */
 }
 .mobile-drawer.active {
   transform: translateY(0);
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .mobile-drawer-overlay.active { display: block; }
+  .mobile-drawer.active { display: block; }
+}
+@media (min-width: 769px) {
+  .mobile-drawer, .mobile-drawer-overlay { display: none !important; }
 }

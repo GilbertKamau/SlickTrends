@@ -103,12 +103,17 @@ router.get('/admin/all', protect as any, requireRole('admin', 'superadmin') as a
         const filter: any = {};
         if (req.user!.role === 'admin') filter.addedBy = req.user!.id;
 
+        console.log(`[DEBUG] Fetching admin products. Filter:`, filter);
+
         const [products, total] = await Promise.all([
             Product.find(filter).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).populate('addedBy', 'name'),
             Product.countDocuments(filter),
         ]);
+        
+        console.log(`[DEBUG] Found ${total} products for admin.`);
         res.json({ success: true, products, total, page: Number(page), pages: Math.ceil(total / Number(limit)) });
     } catch (err) {
+        console.error('[ERROR] Admin products fetch failed:', err);
         res.status(500).json({ success: false, message: 'Server error.' });
     }
 });

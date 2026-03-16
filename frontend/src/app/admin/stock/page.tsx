@@ -40,11 +40,33 @@ export default function AdminStockPage() {
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault(); setSaving(true);
+        e.preventDefault(); 
+        
+        // Clean images array
+        const cleanedImages = form.images.filter(url => url && url.trim() !== '');
+        
+        if (cleanedImages.length === 0) {
+            toast.error('At least one product image is required!');
+            return;
+        }
+
+        setSaving(true);
         try {
-            const payload = { ...form, price: Number(form.price), originalPrice: form.originalPrice ? Number(form.originalPrice) : undefined, stock: Number(form.stock) };
-            if (editId) { await api.put(`/products/${editId}`, payload); toast.success('Product updated!'); }
-            else { await api.post('/products', payload); toast.success('Product added!'); }
+            const payload = { 
+                ...form, 
+                images: cleanedImages,
+                price: Number(form.price), 
+                originalPrice: form.originalPrice ? Number(form.originalPrice) : undefined, 
+                stock: Number(form.stock) 
+            };
+            
+            if (editId) { 
+                await api.put(`/products/${editId}`, payload); 
+                toast.success('Product updated!'); 
+            } else { 
+                await api.post('/products', payload); 
+                toast.success('Product added!'); 
+            }
             setShowForm(false); setEditId(null); setForm(EMPTY_FORM); fetchProducts();
         } catch (err: unknown) {
             toast.error((err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Save failed');
@@ -74,11 +96,11 @@ export default function AdminStockPage() {
                         <form onSubmit={handleSubmit}>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 16 }}>
                                 <div style={{ gridColumn: '1 / -1' }}>
-                                    <label className="input-label">Product Name *</label>
+                                    <label className="input-label">Product Name <span style={{ color: '#ef4444' }}>*</span></label>
                                     <input className="input-field" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required placeholder="e.g. Cozy Winter Robe" />
                                 </div>
                                 <div style={{ gridColumn: '1 / -1' }}>
-                                    <label className="input-label">Description *</label>
+                                    <label className="input-label">Description <span style={{ color: '#ef4444' }}>*</span></label>
                                     <textarea className="input-field" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} required rows={3} placeholder="Describe the item, its features..." style={{ resize: 'vertical' }} />
                                 </div>
                                 <div>
@@ -117,7 +139,7 @@ export default function AdminStockPage() {
                                     <input className="input-field" type="number" min="0" value={form.originalPrice} onChange={e => setForm(f => ({ ...f, originalPrice: e.target.value }))} placeholder="3000" />
                                 </div>
                                 <div>
-                                    <label className="input-label">Stock Quantity *</label>
+                                    <label className="input-label">Stock Quantity <span style={{ color: '#ef4444' }}>*</span></label>
                                     <input className="input-field" type="number" min="0" value={form.stock} onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} required placeholder="10" />
                                 </div>
                                 <div>
