@@ -181,8 +181,28 @@ export default function Navbar() {
             <div className={`mobile-drawer ${mobileOpen ? 'active' : ''}`}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
                     <span style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.2rem', fontWeight: 700, color: 'var(--accent-gold)' }}>Menu</span>
-                    <button onClick={() => setMobileOpen(false)} style={{ background: 'var(--bg-card)', border: '1px solid var(--glass-border)', color: 'var(--text-secondary)', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <X size={20} />
+                    <button 
+                        type="button" 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setMobileOpen(false);
+                        }} 
+                        style={{ 
+                            background: 'rgba(255,255,255,0.1)', 
+                            border: '1px solid var(--glass-border)', 
+                            color: 'var(--text-primary)', 
+                            borderRadius: '50%', 
+                            width: 44, 
+                            height: 44, 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center', 
+                            cursor: 'pointer',
+                            zIndex: 2010,
+                            position: 'relative'
+                        }}
+                    >
+                        <X size={24} />
                     </button>
                 </div>
                 
