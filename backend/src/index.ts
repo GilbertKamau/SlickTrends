@@ -40,7 +40,7 @@ const globalLimiter = rateLimit({
 app.use(helmet()); // Set security HTTP headers
 app.use(morgan('dev')); // Logging
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: process.env.NODE_ENV === 'development' ? true : (process.env.FRONTEND_URL || 'http://localhost:3000'),
     credentials: true,
 }));
 
@@ -90,7 +90,13 @@ app.use((req, res) => {
 
 // ─── Global Error Handler ────────────────────────────────────────────────────
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-    console.error('[GLOBAL ERROR]', err);
+    const errorMsg = `[500 ERROR] ${req.method} ${req.url} - ${err.message}`;
+    console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+    console.log(errorMsg);
+    console.log(err.stack);
+    console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+    
+    // Also log to file
     const errorLog = `[${new Date().toISOString()}] GLOBAL ERROR: ${err.message}\n${err.stack}\n\n`;
     require('fs').appendFileSync('error.log', errorLog);
     res.status(500).json({ 

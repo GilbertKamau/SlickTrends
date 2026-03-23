@@ -70,10 +70,10 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
+      { url: '/logo.svg', type: 'image/svg+xml' },
       { url: '/favicon.ico', sizes: '48x48' },
-      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
     ],
-    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
+    apple: [{ url: '/logo.svg' }],
   },
   manifest: '/manifest.json',
   verification: {

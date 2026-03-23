@@ -6,6 +6,7 @@ import { ShoppingBag, Menu, X, User, LogOut, ChevronDown, Star, Sun, Moon, Megap
 import { useAuthStore } from '@/store/authStore';
 import { useCartStore } from '@/store/cartStore';
 import toast from 'react-hot-toast';
+import Logo from './Logo';
 
 const categories = [
     { label: 'Robes', href: '/products?category=robes' },
@@ -57,13 +58,7 @@ export default function Navbar() {
                 {/* Logo */}
                 <Link href="/" style={{ textDecoration: 'none' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <div style={{
-                            width: 36, height: 36, borderRadius: '50%',
-                            background: 'linear-gradient(135deg, #d4af37, #f0d060)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        }}>
-                            <Star size={18} fill="#0a0012" color="#0a0012" />
-                        </div>
+                        <Logo size={42} />
                         <span style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.4rem', fontWeight: 700 }}>
                             <span className="gradient-text">Slick</span>
                             <span style={{ color: '#b8a9d0', marginLeft: 4 }}>Trends</span>

@@ -55,8 +55,11 @@ router.get('/metrics', protect as any, requireRole('superadmin') as any, async (
                 users: { customers: totalUsers },
             },
         });
-    } catch (err) {
-        res.status(500).json({ success: false, message: 'Server error.', error: err });
+    } catch (err: any) {
+        console.error('❌ Superadmin metrics fetch failed:', err.message);
+        const errorLog = `[${new Date().toISOString()}] Superadmin metrics fetch failed: ${err.message}\n${err.stack}\n\n`;
+        require('fs').appendFileSync('error.log', errorLog);
+        res.status(500).json({ success: false, message: 'Server error.', error: err.message });
     }
 });
 
@@ -72,8 +75,11 @@ router.get('/users', protect as any, requireRole('superadmin') as any, async (re
             User.countDocuments(filter),
         ]);
         res.json({ success: true, users, total, page: Number(page), pages: Math.ceil(total / Number(limit)) });
-    } catch (err) {
-        res.status(500).json({ success: false, message: 'Server error.' });
+    } catch (err: any) {
+        console.error('❌ Superadmin users fetch failed:', err.message);
+        const errorLog = `[${new Date().toISOString()}] Superadmin users fetch failed: ${err.message}\n${err.stack}\n\n`;
+        require('fs').appendFileSync('error.log', errorLog);
+        res.status(500).json({ success: false, message: 'Server error.', error: err.message });
     }
 });
 
@@ -101,8 +107,11 @@ router.get('/transactions', protect as any, requireRole('superadmin') as any, as
         params.push(limit, offset);
         const txRes = await query(queryStr, params);
         res.json({ success: true, transactions: txRes.rows });
-    } catch (err) {
-        res.status(500).json({ success: false, message: 'Server error.' });
+    } catch (err: any) {
+        console.error('❌ Superadmin transactions fetch failed:', err.message);
+        const errorLog = `[${new Date().toISOString()}] Superadmin transactions fetch failed: ${err.message}\n${err.stack}\n\n`;
+        require('fs').appendFileSync('error.log', errorLog);
+        res.status(500).json({ success: false, message: 'Server error.', error: err.message });
     }
 });
 
@@ -116,8 +125,11 @@ router.get('/sales-trend', protect as any, requireRole('superadmin') as any, asy
        GROUP BY DATE(created_at) ORDER BY date ASC`
         );
         res.json({ success: true, trend: res2.rows });
-    } catch (err) {
-        res.status(500).json({ success: false, message: 'Server error.' });
+    } catch (err: any) {
+        console.error('❌ Superadmin sales-trend fetch failed:', err.message);
+        const errorLog = `[${new Date().toISOString()}] Superadmin sales-trend fetch failed: ${err.message}\n${err.stack}\n\n`;
+        require('fs').appendFileSync('error.log', errorLog);
+        res.status(500).json({ success: false, message: 'Server error.', error: err.message });
     }
 });
 
