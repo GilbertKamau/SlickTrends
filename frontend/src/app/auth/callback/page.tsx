@@ -1,11 +1,11 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-export default function AuthCallback() {
+function AuthCallbackContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { setToken, fetchMe } = useAuthStore();
@@ -41,5 +41,18 @@ export default function AuthCallback() {
             <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.5rem' }}>Completing login...</h2>
             <p style={{ color: '#6b5a8a' }}>Please wait while we finalize your session.</p>
         </div>
+    );
+}
+
+export default function AuthCallback() {
+    return (
+        <Suspense fallback={
+            <div style={{ minHeight: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 20 }}>
+                <Loader2 size={40} className="animate-spin" style={{ color: '#d4af37' }} />
+                <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.5rem' }}>Loading...</h2>
+            </div>
+        }>
+            <AuthCallbackContent />
+        </Suspense>
     );
 }
