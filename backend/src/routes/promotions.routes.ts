@@ -10,13 +10,19 @@ router.get('/active', async (req, res: Response): Promise<void> => {
         const now = new Date();
         const promotions = await Promotion.find({
             isActive: true,
-            $or: [
-                { startDate: { $exists: false } },
-                { startDate: { $lte: now } }
-            ],
-            $or: [
-                { endDate: { $exists: false } },
-                { endDate: { $gte: now } }
+            $and: [
+                {
+                    $or: [
+                        { startDate: { $exists: false } },
+                        { startDate: { $lte: now } }
+                    ]
+                },
+                {
+                    $or: [
+                        { endDate: { $exists: false } },
+                        { endDate: { $gte: now } }
+                    ]
+                }
             ]
         }).sort({ createdAt: -1 });
         res.json({ success: true, promotions });
