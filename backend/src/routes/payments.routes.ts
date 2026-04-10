@@ -3,6 +3,8 @@ import Stripe from 'stripe';
 import axios from 'axios';
 import { query } from '../config/db.postgres';
 import { protect, AuthRequest } from '../middleware/auth.middleware';
+import { triggerOrderConfirmedEmail } from '../services/order-email.service';
+
 
 const router = Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, { apiVersion: '2025-01-27.acacia' } as any);
@@ -47,7 +49,11 @@ router.post('/stripe/webhook', async (req: Request, res: Response): Promise<void
                 [orderId, userId, pi.amount / 100, pi.currency.toUpperCase(), pi.id, JSON.stringify(pi)]
             );
             await query(`UPDATE orders SET status = 'confirmed', updated_at = NOW() WHERE id = $1`, [orderId]);
+            
+            // Trigger confirmation email
+            triggerOrderConfirmedEmail(orderId).catch(err => console.error('Order email failure (Stripe):', err));
         }
+
         res.json({ received: true });
     } catch (err) {
         res.status(400).json({ error: 'Webhook error.' });
@@ -94,7 +100,12 @@ router.post('/paypal/capture', protect as any, async (req: AuthRequest, res: Res
             [orderId, req.user!.id, parseFloat(capture.amount.value), capture.amount.currency_code, capture.id, JSON.stringify(response.data)]
         );
         await query(`UPDATE orders SET status = 'confirmed', updated_at = NOW() WHERE id = $1`, [orderId]);
+        
+        // Trigger confirmation email
+        triggerOrderConfirmedEmail(orderId).catch(err => console.error('Order email failure (PayPal):', err));
+
         res.json({ success: true, capture });
+
     } catch (err) {
         res.status(500).json({ success: false, message: 'PayPal capture error.', error: err });
     }
@@ -146,7 +157,11 @@ router.post('/mpesa/callback', async (req: Request, res: Response): Promise<void
                     [orderId, userId, amount, receipt, JSON.stringify({ phone, receipt, amount })]
                 );
                 await query(`UPDATE orders SET status = 'confirmed', updated_at = NOW() WHERE id = $1`, [orderId]);
+                
+                // Trigger confirmation email
+                triggerOrderConfirmedEmail(orderId).catch(err => console.error('Order email failure (MPesa):', err));
             }
+
         }
         res.json({ ResultCode: 0, ResultDesc: 'Success' });
     } catch (err) {
@@ -173,7 +188,11 @@ router.post('/card/charge', protect as any, async (req: AuthRequest, res: Respon
                 [orderId, req.user!.id, amount, currency.toUpperCase(), paymentMethodId ? 'visa/mastercard' : 'card', paymentIntent.id, JSON.stringify(paymentIntent)]
             );
             await query(`UPDATE orders SET status = 'confirmed', updated_at = NOW() WHERE id = $1`, [orderId]);
+            
+            // Trigger confirmation email
+            triggerOrderConfirmedEmail(orderId).catch(err => console.error('Order email failure (Card):', err));
         }
+
         res.json({ success: true, status: paymentIntent.status });
     } catch (err) {
         res.status(500).json({ success: false, message: 'Card payment error.', error: err });

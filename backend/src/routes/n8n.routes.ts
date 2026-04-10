@@ -31,7 +31,7 @@ router.post('/abandoned-cart', verifyN8nToken, async (req: Request, res: Respons
       LEFT JOIN orders o ON o.user_email = ac.user_email 
         AND o.created_at > ac.updated_at
       WHERE o.id IS NULL
-        AND ac.updated_at < NOW() - INTERVAL '2 hours'
+        AND ac.updated_at < NOW() - INTERVAL '24 hours'
         AND ac.email_sent = false
         AND ac.total_value > 0
       LIMIT 50

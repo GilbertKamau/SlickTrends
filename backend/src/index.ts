@@ -39,8 +39,22 @@ const globalLimiter = rateLimit({
 // ─── Middleware ──────────────────────────────────────────────────────────────
 app.use(helmet()); // Set security HTTP headers
 app.use(morgan('dev')); // Logging
+const allowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'https://slicktrendske.com',
+    'https://www.slicktrendske.com',
+    process.env.FRONTEND_URL
+].filter(Boolean) as string[];
+
 app.use(cors({
-    origin: process.env.NODE_ENV === 'development' ? true : (process.env.FRONTEND_URL || 'http://localhost:3000'),
+    origin: process.env.NODE_ENV === 'development' ? true : (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
 }));
 

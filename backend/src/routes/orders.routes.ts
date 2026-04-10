@@ -75,12 +75,8 @@ router.post('/', protect as any, async (req: AuthRequest, res: Response): Promis
 
         res.status(201).json({ success: true, order: { ...order.rows[0], items: orderItemsRes.rows } });
 
-        // ─── Non-blocking: send confirmation email + clear abandoned cart ──
+        // ─── Non-blocking: clear abandoned cart ───────────────────────────
         (async () => {
-            try {
-                const emailItems = orderItems.map(i => ({ name: i.productName, quantity: i.quantity, price: i.unitPrice }));
-                await sendOrderConfirmationEmail(req.user!.email, req.body.userName || req.user!.email, orderId, emailItems, total);
-            } catch (e) { console.warn('Order email failed:', e); }
             try { await clearAbandonedCart(req.user!.email); } catch { /* silent */ }
         })();
         // ─── Invalidate product cache (stock changed) ──────────────────────
