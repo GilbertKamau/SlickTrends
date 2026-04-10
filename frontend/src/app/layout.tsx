@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/next";
 
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://slicktrends.com';
@@ -150,6 +152,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             },
           }}
         />
+        <SpeedInsights />
+        <Analytics />
       </body>
     </html>
   );
