@@ -1,7 +1,7 @@
 import { Resend } from 'resend';
 
 // ─── Resend Client ────────────────────────────────────────────────────────────
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY || 're_123_mock_key');
 
 const FROM = process.env.RESEND_FROM_EMAIL || 'Slick Trends <onboarding@resend.dev>';
 const SITE = process.env.FRONTEND_URL || 'http://localhost:3000';
@@ -80,6 +80,11 @@ function orderItemsTable(items: { name: string; quantity: number; price: number 
 
 // ─── Helper: send via Resend ──────────────────────────────────────────────────
 async function sendEmail(to: string, subject: string, html: string) {
+    if (!process.env.RESEND_API_KEY) {
+        console.log(`[Email Mock] Simulated sending to ${to}. Subject: ${subject}`);
+        return;
+    }
+
     // Redirect all emails to the test recipient if in mock mode
     const MOCK_RECIPIENT = 'margaret@slicktrendske.com';
     const isDev = process.env.NODE_ENV === 'development';
