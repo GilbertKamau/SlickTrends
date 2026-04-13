@@ -181,7 +181,7 @@ export default function HomePage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 32 }}>
               {[
                 { icon: Truck, title: 'Free Shipping', desc: 'On all orders over KES 5,000' },
-                { icon: Shield, title: 'Secure Payments', desc: 'MPesa, Stripe, PayPal & Cards' },
+                { icon: Shield, title: 'Secure Payments', desc: 'Secure M-Pesa & PayPal integration' },
                 { icon: RefreshCw, title: 'Easy Returns', desc: '7-day hassle-free returns' },
                 { icon: Star, title: 'Quality Checked', desc: 'Every item inspected before listing' },
               ].map(({ icon: Icon, title, desc }) => (

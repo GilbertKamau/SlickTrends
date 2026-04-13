@@ -1,5 +1,4 @@
 import { Router, Request, Response } from 'express';
-import Stripe from 'stripe';
 import axios from 'axios';
 import { query } from '../config/db.postgres';
 import { protect, AuthRequest } from '../middleware/auth.middleware';
@@ -8,7 +7,6 @@ import { getRedis } from '../config/redis';
 
 
 const router = Router();
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, { apiVersion: '2025-01-27.acacia' } as any);
 
 // ─── M-Pesa Helpers ─────────────────────────────────────────────────────────
 
@@ -67,44 +65,6 @@ async function deleteStkMapping(checkoutRequestId: string) {
     }
 }
 
-// ─── STRIPE ─────────────────────────────────────────────────────────────────
-router.post('/stripe/create-intent', protect as any, async (req: AuthRequest, res: Response): Promise<void> => {
-    try {
-        const { orderId, amount, currency = 'kes' } = req.body;
-        const paymentIntent = await stripe.paymentIntents.create({
-            amount: Math.round(amount * 100),
-            currency,
-            metadata: { orderId, userId: req.user!.id },
-        });
-        res.json({ success: true, clientSecret: paymentIntent.client_secret, paymentIntentId: paymentIntent.id });
-    } catch (err) {
-        res.status(500).json({ success: false, message: 'Stripe error.', error: err });
-    }
-});
-
-router.post('/stripe/webhook', async (req: Request, res: Response): Promise<void> => {
-    const sig = req.headers['stripe-signature'] as string;
-    try {
-        const event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET as string);
-        if (event.type === 'payment_intent.succeeded') {
-            const pi = event.data.object as Stripe.PaymentIntent;
-            const { orderId, userId } = pi.metadata;
-            await query(
-                `INSERT INTO transactions (order_id, user_id, amount, currency, payment_method, payment_provider_id, status, metadata)
-         VALUES ($1, $2, $3, $4, 'stripe', $5, 'completed', $6)`,
-                [orderId, userId, pi.amount / 100, pi.currency.toUpperCase(), pi.id, JSON.stringify(pi)]
-            );
-            await query(`UPDATE orders SET status = 'confirmed', updated_at = NOW() WHERE id = $1`, [orderId]);
-            
-            // Trigger confirmation email
-            triggerOrderConfirmedEmail(orderId).catch(err => console.error('Order email failure (Stripe):', err));
-        }
-
-        res.json({ received: true });
-    } catch (err) {
-        res.status(400).json({ error: 'Webhook error.' });
-    }
-});
 
 // ─── PAYPAL ─────────────────────────────────────────────────────────────────
 const getPaypalToken = async (): Promise<string> => {
@@ -322,34 +282,5 @@ router.post('/mpesa/query', protect as any, async (req: AuthRequest, res: Respon
     }
 });
 
-// ─── CARD (Visa/Mastercard via Stripe) ──────────────────────────────────────
-router.post('/card/charge', protect as any, async (req: AuthRequest, res: Response): Promise<void> => {
-    try {
-        const { orderId, paymentMethodId, amount, currency = 'kes' } = req.body;
-        const paymentIntent = await stripe.paymentIntents.create({
-            amount: Math.round(amount * 100),
-            currency,
-            payment_method: paymentMethodId,
-            confirm: true,
-            automatic_payment_methods: { enabled: true, allow_redirects: 'never' },
-            metadata: { orderId, userId: req.user!.id, source: 'card' },
-        });
-        if (paymentIntent.status === 'succeeded') {
-            await query(
-                `INSERT INTO transactions (order_id, user_id, amount, currency, payment_method, payment_provider_id, status, metadata)
-         VALUES ($1, $2, $3, $4, $5, $6, 'completed', $7)`,
-                [orderId, req.user!.id, amount, currency.toUpperCase(), paymentMethodId ? 'visa/mastercard' : 'card', paymentIntent.id, JSON.stringify(paymentIntent)]
-            );
-            await query(`UPDATE orders SET status = 'confirmed', updated_at = NOW() WHERE id = $1`, [orderId]);
-            
-            // Trigger confirmation email
-            triggerOrderConfirmedEmail(orderId).catch(err => console.error('Order email failure (Card):', err));
-        }
-
-        res.json({ success: true, status: paymentIntent.status });
-    } catch (err) {
-        res.status(500).json({ success: false, message: 'Card payment error.', error: err });
-    }
-});
 
 export default router;

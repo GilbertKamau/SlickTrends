@@ -14,9 +14,7 @@ import toast from 'react-hot-toast';
 
 const PAYMENT_METHODS = [
     { id: 'mpesa', label: 'M-Pesa', icon: Smartphone, desc: 'Pay via M-Pesa STK Push', color: '#10b981' },
-    { id: 'stripe', label: 'Stripe', icon: CreditCard, desc: 'Pay with debit/credit card', color: '#635bff' },
     { id: 'paypal', label: 'PayPal', icon: Globe, desc: 'Pay with PayPal balance', color: '#0070ba' },
-    { id: 'card', label: 'Visa / Mastercard', icon: CreditCard, desc: 'Enter card details directly', color: '#d4af37' },
 ];
 
 export default function CheckoutPage() {
