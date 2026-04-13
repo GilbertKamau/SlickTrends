@@ -6,6 +6,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
 import api from '@/lib/api';
+import { useAuthStore } from '@/store/authStore';
 
 const CATEGORIES = [
   { value: 'robes', label: 'Robes', emoji: '🥻', desc: 'Luxurious robes for all sizes' },
@@ -22,6 +23,7 @@ export default function HomePage() {
   const [promotions, setPromotions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [hasMounted, setHasMounted] = useState(false);
+  const { user } = useAuthStore();
 
   useEffect(() => {
     setHasMounted(true);
@@ -65,9 +67,16 @@ export default function HomePage() {
                 <Link href="/products" className="btn-primary" style={{ textDecoration: 'none', fontSize: '1rem', padding: '14px 32px' }}>
                   Shop Now <ArrowRight size={18} />
                 </Link>
-                <Link href="/products?featured=true" className="btn-secondary" style={{ textDecoration: 'none', fontSize: '1rem', padding: '13px 32px' }}>
-                  View Featured
-                </Link>
+                {hasMounted && !user && (
+                    <Link href="/auth/register" className="btn-secondary" style={{ textDecoration: 'none', fontSize: '1rem', padding: '13px 32px' }}>
+                      Create Free Account
+                    </Link>
+                )}
+                {hasMounted && user && (
+                    <Link href="/products?featured=true" className="btn-secondary" style={{ textDecoration: 'none', fontSize: '1rem', padding: '13px 32px' }}>
+                      View Featured
+                    </Link>
+                )}
               </div>
 
               {/* Stats */}
@@ -200,7 +209,9 @@ export default function HomePage() {
               Join thousands of happy customers making eco-friendly choices.
             </p>
             <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <Link href="/auth/register" className="btn-primary" style={{ textDecoration: 'none', padding: '14px 36px', fontSize: '1rem' }}>Create Free Account</Link>
+              {hasMounted && !user && (
+                  <Link href="/auth/register" className="btn-primary" style={{ textDecoration: 'none', padding: '14px 36px', fontSize: '1rem' }}>Create Free Account</Link>
+              )}
               <Link href="/products" className="btn-secondary" style={{ textDecoration: 'none', padding: '13px 36px', fontSize: '1rem' }}>Browse Products</Link>
             </div>
           </div>
