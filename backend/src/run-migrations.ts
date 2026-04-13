@@ -13,7 +13,10 @@ const migrations = [
     '001_create_orders.sql',
     '002_create_order_items.sql',
     '003_create_transactions.sql',
-    '004_create_abandoned_carts.sql'
+    '004_create_abandoned_carts.sql',
+    '005_create_users.sql',
+    '006_create_products.sql',
+    '007_create_promotions.sql'
 ];
 
 async function runMigrations() {

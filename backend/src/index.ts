@@ -11,7 +11,7 @@ dotenv.config();
 import passport from 'passport';
 import { configurePassport } from './config/passport';
 
-import connectMongoDB from './config/db.mongo';
+
 import { getRedis, initRedis } from './config/redis';
 import authRoutes from './routes/auth.routes';
 import productRoutes from './routes/products.routes';
@@ -33,7 +33,7 @@ const globalLimiter = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     message: { success: false, message: 'Too many requests, please try again later.' },
-    skip: (req) => req.url.startsWith('/api/payments/stripe/webhook'), // Don't block webhooks
+    skip: (req) => req.url.startsWith('/api/payments/stripe/webhook') || req.url.startsWith('/api/payments/mpesa/callback'), // Don't block webhooks/callbacks
 });
 
 // ─── Middleware ──────────────────────────────────────────────────────────────
@@ -122,12 +122,12 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 
 // ─── Start Server ─────────────────────────────────────────────────────────────
 const start = async () => {
-    await connectMongoDB();
+
     // Connect Redis before proceeding
     await initRedis();
     app.listen(PORT, () => {
         console.log(`\n🚀 Slick Trends API running on http://localhost:${PORT}`);
-        console.log(`📦 MongoDB Atlas: connected`);
+
         console.log(`🗄️  PostgreSQL Cloud: connected`);
         console.log(`📧 Email: SMTP via ${process.env.SMTP_HOST || 'smtp.gmail.com'}`);
         console.log(`🔴 Redis: ${process.env.REDIS_URL ? 'configured' : 'local fallback'}\n`);

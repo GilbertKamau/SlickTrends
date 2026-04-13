@@ -1,7 +1,5 @@
 import { Router, Response } from 'express';
 import { query } from '../config/db.postgres';
-import Product from '../models/Product';
-import User from '../models/User';
 import { protect, requireRole, AuthRequest } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -24,15 +22,11 @@ router.get('/metrics', protect as any, requireRole('superadmin') as any, async (
             query(`SELECT payment_method, COUNT(*) as count, SUM(amount) as total FROM transactions WHERE status = 'completed' GROUP BY payment_method`),
         ]);
 
-        const [totalProducts, totalUsers, lowStockProducts] = await Promise.all([
-            Product.countDocuments({ isActive: true }),
-            User.countDocuments({ role: 'customer' }),
-            Product.countDocuments({ isActive: true, stock: { $lte: 5 } }),
-        ]);
-
-        const categoryStats = await Product.aggregate([
-            { $match: { isActive: true } },
-            { $group: { _id: '$category', count: { $sum: 1 }, totalStock: { $sum: '$stock' }, avgPrice: { $avg: '$price' } } },
+        const [totalProductsRes, totalUsersRes, lowStockProductsRes, categoryStatsRes] = await Promise.all([
+            query('SELECT COUNT(*) FROM products WHERE is_active = true'),
+            query("SELECT COUNT(*) FROM users WHERE role = 'customer'"),
+            query('SELECT COUNT(*) FROM products WHERE is_active = true AND stock <= 5'),
+            query('SELECT category as "_id", COUNT(*) as count, SUM(stock) as "totalStock", AVG(price) as "avgPrice" FROM products WHERE is_active = true GROUP BY category')
         ]);
 
         res.json({
@@ -51,14 +45,17 @@ router.get('/metrics', protect as any, requireRole('superadmin') as any, async (
                     monthly: monthlyRevenueRes.rows,
                 },
                 payments: { byMethod: txByMethodRes.rows },
-                products: { total: totalProducts, lowStock: lowStockProducts, byCategory: categoryStats },
-                users: { customers: totalUsers },
+                products: { 
+                    total: Number(totalProductsRes.rows[0].count), 
+                    lowStock: Number(lowStockProductsRes.rows[0].count), 
+                    byCategory: categoryStatsRes.rows 
+                },
+                users: { customers: Number(totalUsersRes.rows[0].count) },
             },
         });
     } catch (err: any) {
         console.error('❌ Superadmin metrics fetch failed:', err.message);
-        const errorLog = `[${new Date().toISOString()}] Superadmin metrics fetch failed: ${err.message}\n${err.stack}\n\n`;
-        require('fs').appendFileSync('error.log', errorLog);
+        require('fs').appendFileSync('error.log', `[${new Date().toISOString()}] Superadmin metrics fetch failed: ${err.message}\n${err.stack}\n\n`);
         res.status(500).json({ success: false, message: 'Server error.', error: err.message });
     }
 });
@@ -67,18 +64,25 @@ router.get('/metrics', protect as any, requireRole('superadmin') as any, async (
 router.get('/users', protect as any, requireRole('superadmin') as any, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { role, page = 1, limit = 20 } = req.query;
-        const filter: Record<string, unknown> = {};
-        if (role) filter.role = role;
+        let whereSql = '';
+        const params: unknown[] = [];
+        if (role) {
+            params.push(role);
+            whereSql = 'WHERE role = $1';
+        }
+        
         const skip = (Number(page) - 1) * Number(limit);
-        const [users, total] = await Promise.all([
-            User.find(filter).select('-password').sort({ createdAt: -1 }).skip(skip).limit(Number(limit)),
-            User.countDocuments(filter),
-        ]);
-        res.json({ success: true, users, total, page: Number(page), pages: Math.ceil(total / Number(limit)) });
+        
+        const countRes = await query(`SELECT COUNT(*) FROM users ${whereSql}`, params);
+        const total = Number(countRes.rows[0].count);
+
+        params.push(Number(limit), skip);
+        const usersRes = await query(`SELECT id, name, email, role, phone, is_verified, is_active, created_at FROM users ${whereSql} ORDER BY created_at DESC LIMIT $${params.length - 1} OFFSET $${params.length}`, params);
+        
+        res.json({ success: true, users: usersRes.rows, total, page: Number(page), pages: Math.ceil(total / Number(limit)) });
     } catch (err: any) {
         console.error('❌ Superadmin users fetch failed:', err.message);
-        const errorLog = `[${new Date().toISOString()}] Superadmin users fetch failed: ${err.message}\n${err.stack}\n\n`;
-        require('fs').appendFileSync('error.log', errorLog);
+        require('fs').appendFileSync('error.log', `[${new Date().toISOString()}] Superadmin users fetch failed: ${err.message}\n${err.stack}\n\n`);
         res.status(500).json({ success: false, message: 'Server error.', error: err.message });
     }
 });
@@ -87,7 +91,7 @@ router.get('/users', protect as any, requireRole('superadmin') as any, async (re
 router.patch('/users/:id/status', protect as any, requireRole('superadmin') as any, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { isActive } = req.body;
-        await User.findByIdAndUpdate(req.params.id, { isActive });
+        await query('UPDATE users SET is_active = $1, updated_at = NOW() WHERE id = $2', [isActive, req.params.id]);
         res.json({ success: true, message: `User ${isActive ? 'activated' : 'deactivated'}.` });
     } catch (err) {
         res.status(500).json({ success: false, message: 'Server error.' });
@@ -109,8 +113,7 @@ router.get('/transactions', protect as any, requireRole('superadmin') as any, as
         res.json({ success: true, transactions: txRes.rows });
     } catch (err: any) {
         console.error('❌ Superadmin transactions fetch failed:', err.message);
-        const errorLog = `[${new Date().toISOString()}] Superadmin transactions fetch failed: ${err.message}\n${err.stack}\n\n`;
-        require('fs').appendFileSync('error.log', errorLog);
+        require('fs').appendFileSync('error.log', `[${new Date().toISOString()}] Superadmin transactions fetch failed: ${err.message}\n${err.stack}\n\n`);
         res.status(500).json({ success: false, message: 'Server error.', error: err.message });
     }
 });
@@ -127,8 +130,7 @@ router.get('/sales-trend', protect as any, requireRole('superadmin') as any, asy
         res.json({ success: true, trend: res2.rows });
     } catch (err: any) {
         console.error('❌ Superadmin sales-trend fetch failed:', err.message);
-        const errorLog = `[${new Date().toISOString()}] Superadmin sales-trend fetch failed: ${err.message}\n${err.stack}\n\n`;
-        require('fs').appendFileSync('error.log', errorLog);
+        require('fs').appendFileSync('error.log', `[${new Date().toISOString()}] Superadmin sales-trend fetch failed: ${err.message}\n${err.stack}\n\n`);
         res.status(500).json({ success: false, message: 'Server error.', error: err.message });
     }
 });

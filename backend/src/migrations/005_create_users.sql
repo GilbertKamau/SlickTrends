@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS users (
+  id VARCHAR(255) PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password VARCHAR(255),
+  role VARCHAR(50) DEFAULT 'customer',
+  phone VARCHAR(50),
+  address JSONB,
+  avatar TEXT,
+  reset_password_token VARCHAR(255),
+  reset_password_expire TIMESTAMP,
+  otp VARCHAR(10),
+  otp_expire TIMESTAMP,
+  is_verified BOOLEAN DEFAULT false,
+  google_id VARCHAR(255) UNIQUE,
+  microsoft_id VARCHAR(255) UNIQUE,
+  is_active BOOLEAN DEFAULT true,
+  payment_details JSONB,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);

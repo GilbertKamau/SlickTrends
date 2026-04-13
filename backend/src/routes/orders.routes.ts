@@ -1,7 +1,7 @@
 import { Router, Response } from 'express';
 import { query } from '../config/db.postgres';
 import { protect, requireRole, AuthRequest } from '../middleware/auth.middleware';
-import Product from '../models/Product';
+
 import { v4 as uuidv4 } from 'uuid';
 import {
     sendOrderConfirmationEmail,
@@ -36,8 +36,9 @@ router.post('/', protect as any, async (req: AuthRequest, res: Response): Promis
         let subtotal = 0;
         const orderItems = [];
         for (const item of items) {
-            const product = await Product.findById(item.productId);
-            if (!product || !product.isActive) {
+            const productRes = await query('SELECT * FROM products WHERE id = $1', [item.productId]);
+            const product = productRes.rows[0];
+            if (!product || !product.is_active) {
                 res.status(400).json({ success: false, message: `Product ${item.productId} not found.` }); return;
             }
             if (product.stock < item.quantity) {
@@ -45,7 +46,8 @@ router.post('/', protect as any, async (req: AuthRequest, res: Response): Promis
             }
             const totalPrice = product.price * item.quantity;
             subtotal += totalPrice;
-            orderItems.push({ productId: product._id.toString(), productName: product.name, productImage: product.images[0] || '', category: product.category, size: product.size, condition: product.condition, quantity: item.quantity, unitPrice: product.price, totalPrice });
+            const parsedImages = typeof product.images === 'string' ? JSON.parse(product.images) : (product.images || []);
+            orderItems.push({ productId: product.id, productName: product.name, productImage: parsedImages[0] || '', category: product.category, size: product.size, condition: product.condition, quantity: item.quantity, unitPrice: product.price, totalPrice });
         }
 
         const shippingFee = subtotal > 5000 ? 0 : 200;
@@ -67,7 +69,7 @@ router.post('/', protect as any, async (req: AuthRequest, res: Response): Promis
                 [orderId, item.productId, item.productName, item.productImage, item.category, item.size, item.condition, item.quantity, item.unitPrice, item.totalPrice]
             );
             // Decrement stock
-            await Product.findByIdAndUpdate(item.productId, { $inc: { stock: -item.quantity } });
+            await query('UPDATE products SET stock = stock - $1, updated_at = NOW() WHERE id = $2', [item.quantity, item.productId]);
         }
 
         const order = await query('SELECT * FROM orders WHERE id = $1', [orderId]);
@@ -121,8 +123,8 @@ router.get('/', protect as any, requireRole('admin', 'superadmin') as any, async
         const whereClauses: string[] = [];
 
         if (req.user!.role === 'admin') {
-            const myProducts = await Product.find({ addedBy: req.user!.id }, '_id');
-            const myProductIds = myProducts.map(p => p._id.toString());
+            const myProductsRes = await query('SELECT id FROM products WHERE added_by = $1', [req.user!.id]);
+            const myProductIds = myProductsRes.rows.map(p => p.id);
             
             if (myProductIds.length === 0) {
                 res.json({ success: true, orders: [], total: 0 });
@@ -174,8 +176,8 @@ router.get('/:id', protect as any, requireRole('admin', 'superadmin') as any, as
         
         // Ownership check for admin
         if (req.user!.role === 'admin') {
-            const myProducts = await Product.find({ addedBy: req.user!.id }, '_id');
-            const myProductIds = myProducts.map(p => p._id.toString());
+            const myProductsRes = await query('SELECT id FROM products WHERE added_by = $1', [req.user!.id]);
+            const myProductIds = myProductsRes.rows.map(p => p.id);
             const hasMyProduct = itemsRes.rows.some(item => myProductIds.includes(item.product_id));
             if (!hasMyProduct) {
                 res.status(403).json({ success: false, message: 'Access denied. This order does not contain your products.' });
@@ -209,8 +211,8 @@ router.patch('/:id/status', protect as any, requireRole('admin', 'superadmin') a
         // Ownership check for admin
         if (req.user!.role === 'admin') {
             const itemsRes = await query('SELECT product_id FROM order_items WHERE order_id = $1', [req.params.id]);
-            const myProducts = await Product.find({ addedBy: req.user!.id }, '_id');
-            const myProductIds = myProducts.map(p => p._id.toString());
+            const myProductsRes = await query('SELECT id FROM products WHERE added_by = $1', [req.user!.id]);
+            const myProductIds = myProductsRes.rows.map(p => p.id);
             const hasMyProduct = itemsRes.rows.some(item => myProductIds.includes(item.product_id));
             if (!hasMyProduct) {
                 res.status(403).json({ success: false, message: 'Access denied. This order does not contain your products.' });

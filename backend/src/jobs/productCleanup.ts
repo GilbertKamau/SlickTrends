@@ -1,5 +1,5 @@
 import cron from 'node-cron';
-import Product from '../models/Product';
+import { query } from '../config/db.postgres';
 
 /**
  * Initializes a cron job that runs daily at midnight to delete products 
@@ -14,13 +14,10 @@ export const initProductCleanupJob = () => {
         oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
         try {
-            const result = await Product.deleteMany({
-                isSold: true,
-                soldAt: { $lte: oneWeekAgo }
-            });
+            const result = await query('DELETE FROM products WHERE is_sold = true AND sold_at <= $1', [oneWeekAgo]);
             
-            if (result.deletedCount > 0) {
-                console.log(`[Cleanup Job] Successfully deleted ${result.deletedCount} sold products.`);
+            if (result.rowCount && result.rowCount > 0) {
+                console.log(`[Cleanup Job] Successfully deleted ${result.rowCount} sold products.`);
             } else {
                 console.log('[Cleanup Job] No products to delete at this time.');
             }

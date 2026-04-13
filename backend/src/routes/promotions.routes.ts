@@ -1,97 +1,89 @@
 import { Router, Response } from 'express';
-import Promotion from '../models/Promotion';
-import User from '../models/User';
+import { query } from '../config/db.postgres';
 import { sendPromotionEmail } from '../services/email.service';
 import { protect, requireRole, AuthRequest } from '../middleware/auth.middleware';
-
-
-
+import { v4 as uuidv4 } from 'uuid';
 
 const router = Router();
 
-// GET /api/promotions/active - Public: fetch active deals
 router.get('/active', async (req, res: Response): Promise<void> => {
     try {
-        const now = new Date();
-        const promotions = await Promotion.find({
-            isActive: true,
-            $and: [
-                {
-                    $or: [
-                        { startDate: { $exists: false } },
-                        { startDate: { $lte: now } }
-                    ]
-                },
-                {
-                    $or: [
-                        { endDate: { $exists: false } },
-                        { endDate: { $gte: now } }
-                    ]
-                }
-            ]
-        }).sort({ createdAt: -1 });
-        res.json({ success: true, promotions });
+        const promotionsRes = await query(
+            `SELECT * FROM promotions 
+             WHERE is_active = true 
+             AND (start_date IS NULL OR start_date <= NOW())
+             AND (end_date IS NULL OR end_date >= NOW())
+             ORDER BY created_at DESC`
+        );
+        res.json({ success: true, promotions: promotionsRes.rows });
     } catch (err) {
         res.status(500).json({ success: false, message: 'Server error.' });
     }
 });
 
-// ─── Superadmin CRUD ───────────────────────────────────────────────────
-
-// GET /api/promotions - All (Superadmin)
 router.get('/', protect as any, requireRole('superadmin') as any, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const promotions = await Promotion.find().sort({ createdAt: -1 });
-        res.json({ success: true, promotions });
+        const promotionsRes = await query('SELECT * FROM promotions ORDER BY created_at DESC');
+        res.json({ success: true, promotions: promotionsRes.rows });
     } catch (err) {
         res.status(500).json({ success: false, message: 'Server error.' });
     }
 });
 
-// POST /api/promotions
 router.post('/', protect as any, requireRole('superadmin') as any, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const promotion = await Promotion.create(req.body);
-        res.status(201).json({ success: true, promotion });
+        const { title, subtitle, imageUrl, link, isActive, type, startDate, endDate } = req.body;
+        const id = uuidv4();
+        const promoRes = await query(
+            `INSERT INTO promotions (id, title, subtitle, image_url, link, is_active, type, start_date, end_date) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+            [id, title, subtitle || null, imageUrl, link || '#', isActive !== undefined ? isActive : true, type || 'holiday', startDate || null, endDate || null]
+        );
+        res.status(201).json({ success: true, promotion: promoRes.rows[0] });
     } catch (err) {
         res.status(500).json({ success: false, message: 'Server error.', error: err });
     }
 });
 
-// PUT /api/promotions/:id
 router.put('/:id', protect as any, requireRole('superadmin') as any, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const promotion = await Promotion.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        if (!promotion) { res.status(404).json({ success: false, message: 'Promotion not found.' }); return; }
-        res.json({ success: true, promotion });
+        const { title, subtitle, imageUrl, link, isActive, type, startDate, endDate } = req.body;
+        const promoRes = await query(
+            `UPDATE promotions 
+             SET title = COALESCE($1, title), subtitle = $2, image_url = COALESCE($3, image_url), 
+                 link = COALESCE($4, link), is_active = COALESCE($5, is_active), type = COALESCE($6, type), 
+                 start_date = $7, end_date = $8, updated_at = NOW() 
+             WHERE id = $9 RETURNING *`,
+            [title, subtitle || null, imageUrl, link, isActive, type, startDate || null, endDate || null, req.params.id]
+        );
+        if (promoRes.rows.length === 0) { res.status(404).json({ success: false, message: 'Promotion not found.' }); return; }
+        res.json({ success: true, promotion: promoRes.rows[0] });
     } catch (err) {
         res.status(500).json({ success: false, message: 'Server error.' });
     }
 });
 
-// DELETE /api/promotions/:id
 router.delete('/:id', protect as any, requireRole('superadmin') as any, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const promotion = await Promotion.findByIdAndDelete(req.params.id);
-        if (!promotion) { res.status(404).json({ success: false, message: 'Promotion not found.' }); return; }
+        const promoRes = await query('DELETE FROM promotions WHERE id = $1 RETURNING id', [req.params.id]);
+        if (promoRes.rows.length === 0) { res.status(404).json({ success: false, message: 'Promotion not found.' }); return; }
         res.json({ success: true, message: 'Promotion deleted.' });
     } catch (err) {
         res.status(500).json({ success: false, message: 'Server error.' });
     }
 });
 
-// POST /api/promotions/:id/broadcast - Superadmin: send promo to all verified users
 router.post('/:id/broadcast', protect as any, requireRole('superadmin') as any, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const promo = await Promotion.findById(req.params.id);
-        if (!promo || !promo.isActive) {
-            res.status(400).json({ success: false, message: 'Active promotion not found.' });
-            return;
+        const promoRes = await query('SELECT * FROM promotions WHERE id = $1 AND is_active = true', [req.params.id]);
+        if (promoRes.rows.length === 0) {
+            res.status(400).json({ success: false, message: 'Active promotion not found.' }); return;
         }
+        const promo = promoRes.rows[0];
 
-        const users = await User.find({ isVerified: true, role: 'customer' }, 'email name');
-        
-        // Progress tracking (non-blocking)
+        const usersRes = await query("SELECT email, name FROM users WHERE is_verified = true AND role = 'customer'");
+        const users = usersRes.rows;
+
         res.json({ success: true, message: `Broadcast started for ${users.length} users.` });
 
         (async () => {
@@ -99,20 +91,10 @@ router.post('/:id/broadcast', protect as any, requireRole('superadmin') as any, 
             let failCount = 0;
             for (const user of users) {
                 try {
-                    await sendPromotionEmail(
-                        user.email,
-
-                        user.name,
-                        promo.title,
-                        promo.subtitle || '',
-                        undefined, // No coupon code in model yet
-                        promo.imageUrl
-                    );
+                    await sendPromotionEmail(user.email, user.name, promo.title, promo.subtitle || '', undefined, promo.image_url);
                     successCount++;
                 } catch (e) {
-
                     failCount++;
-                    console.error(`Broadcast failed for ${user.email}:`, e);
                 }
             }
             console.log(`[Broadcast] Done. Success: ${successCount}, Failed: ${failCount}`);
@@ -121,6 +103,5 @@ router.post('/:id/broadcast', protect as any, requireRole('superadmin') as any, 
         res.status(500).json({ success: false, message: 'Server error.', error: err });
     }
 });
-
 
 export default router;

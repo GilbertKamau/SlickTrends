@@ -1,7 +1,8 @@
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as MicrosoftStrategy } from 'passport-microsoft';
-import User from '../models/User';
+import { query } from './db.postgres';
+import { v4 as uuidv4 } from 'uuid';
 
 export const configurePassport = () => {
     // Google Strategy
@@ -14,27 +15,30 @@ export const configurePassport = () => {
             },
             async (accessToken, refreshToken, profile, done) => {
                 try {
-                    let user = await User.findOne({ googleId: profile.id });
+                    let userRes = await query('SELECT * FROM users WHERE google_id = $1', [profile.id]);
+                    let user = userRes.rows[0];
 
                     if (!user) {
-                        // Check if email already exists
-                        user = await User.findOne({ email: profile.emails?.[0].value });
+                        const email = profile.emails?.[0].value;
+                        userRes = await query('SELECT * FROM users WHERE email = $1', [email]);
+                        user = userRes.rows[0];
 
                         if (user) {
                             // Link Google ID to existing account
-                            user.googleId = profile.id;
-                            if (!user.avatar) user.avatar = profile.photos?.[0].value;
-                            await user.save();
+                            await query(
+                                'UPDATE users SET google_id = $1, avatar = COALESCE(avatar, $2), updated_at = NOW() WHERE id = $3',
+                                [profile.id, profile.photos?.[0].value || null, user.id]
+                            );
                         } else {
                             // Create new user
-                            user = await User.create({
-                                name: profile.displayName,
-                                email: profile.emails?.[0].value,
-                                googleId: profile.id,
-                                avatar: profile.photos?.[0].value,
-                                role: 'customer',
-                                isVerified: true, // Google emails are already verified
-                            });
+                            const id = uuidv4();
+                            await query(
+                                `INSERT INTO users (id, name, email, google_id, avatar, role, is_verified) 
+                                 VALUES ($1, $2, $3, $4, $5, 'customer', true)`,
+                                [id, profile.displayName, email, profile.id, profile.photos?.[0].value || null]
+                            );
+                            userRes = await query('SELECT * FROM users WHERE id = $1', [id]);
+                            user = userRes.rows[0];
                         }
                     }
                     return done(null, user);
@@ -56,23 +60,25 @@ export const configurePassport = () => {
             },
             async (accessToken: string, refreshToken: string, profile: any, done: any) => {
                 try {
-                    let user = await User.findOne({ microsoftId: profile.id });
+                    let userRes = await query('SELECT * FROM users WHERE microsoft_id = $1', [profile.id]);
+                    let user = userRes.rows[0];
 
                     if (!user) {
                         const email = profile.emails?.[0]?.value || profile.userPrincipalName;
-                        user = await User.findOne({ email });
+                        userRes = await query('SELECT * FROM users WHERE email = $1', [email]);
+                        user = userRes.rows[0];
 
                         if (user) {
-                            user.microsoftId = profile.id;
-                            await user.save();
+                            await query('UPDATE users SET microsoft_id = $1, updated_at = NOW() WHERE id = $2', [profile.id, user.id]);
                         } else {
-                            user = await User.create({
-                                name: profile.displayName,
-                                email: email,
-                                microsoftId: profile.id,
-                                role: 'customer',
-                                isVerified: true,
-                            });
+                            const id = uuidv4();
+                            await query(
+                                `INSERT INTO users (id, name, email, microsoft_id, role, is_verified) 
+                                 VALUES ($1, $2, $3, $4, 'customer', true)`,
+                                [id, profile.displayName, email, profile.id]
+                            );
+                            userRes = await query('SELECT * FROM users WHERE id = $1', [id]);
+                            user = userRes.rows[0];
                         }
                     }
                     return done(null, user);

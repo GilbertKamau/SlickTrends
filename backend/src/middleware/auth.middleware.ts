@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import User from '../models/User';
+import { query } from '../config/db.postgres';
 
 declare global {
     namespace Express {
@@ -27,12 +27,13 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
         }
         const token = authHeader.split(' ')[1];
         const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { id: string; email: string; role: string };
-        const user = await User.findById(decoded.id).select('-password');
-        if (!user || !user.isActive) {
+        const userRes = await query('SELECT id, email, role, is_active FROM users WHERE id = $1', [decoded.id]);
+        const user = userRes.rows[0];
+        if (!user || !user.is_active) {
             res.status(401).json({ success: false, message: 'User not found or inactive.' });
             return;
         }
-        req.user = { id: user._id.toString(), email: user.email, role: user.role };
+        req.user = { id: user.id, email: user.email, role: user.role };
         next();
     } catch {
         res.status(401).json({ success: false, message: 'Invalid or expired token.' });
