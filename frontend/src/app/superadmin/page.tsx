@@ -17,7 +17,7 @@ export default function SuperAdminPage() {
         orders: { total: number; pending: number; dispatched: number; completed: number; cancelled: number };
         revenue: { total: number; today: number; monthly: { month: string; revenue: string }[] };
         payments: { byMethod: { payment_method: string; count: string; total: string }[] };
-        products: { total: number; lowStock: number; byCategory: { _id: string; count: number; avgPrice: number }[] };
+        products: { total: number; lowStock: number; byCategory: { id: string; count: number; avgPrice: number }[] };
         users: { customers: number };
     } | null>(null);
     const [trend, setTrend] = useState([]);
@@ -60,7 +60,7 @@ export default function SuperAdminPage() {
     }));
 
     const categoryData = (metrics?.products?.byCategory || []).map(c => ({
-        name: c._id.replace('-', ' '),
+        name: c.id.replace('-', ' '),
         count: c.count,
         avgPrice: Math.round(c.avgPrice),
     }));

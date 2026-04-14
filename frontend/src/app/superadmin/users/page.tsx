@@ -5,7 +5,7 @@ import api from '@/lib/api';
 import toast from 'react-hot-toast';
 
 interface User {
-    _id: string;
+    id: string;
     name: string;
     email: string;
     role: string;
@@ -82,7 +82,7 @@ export default function UsersPage() {
                     </thead>
                     <tbody>
                         {filtered.map(user => (
-                            <tr key={user._id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', transition: 'background 0.2s' }} className="hover-row">
+                            <tr key={user.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', transition: 'background 0.2s' }} className="hover-row">
                                 <td style={{ padding: '16px 20px' }}>
                                     <div style={{ fontWeight: 600 }}>{user.name}</div>
                                     <div style={{ fontSize: '0.8rem', color: '#6b5a8a', display: 'flex', alignItems: 'center', gap: 4 }}>

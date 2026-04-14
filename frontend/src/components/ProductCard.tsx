@@ -5,7 +5,7 @@ import { useCartStore } from '@/store/cartStore';
 import toast from 'react-hot-toast';
 
 interface Product {
-    _id: string;
+    id: string;
     name: string;
     price: number;
     originalPrice?: number;
@@ -37,7 +37,7 @@ export default function ProductCard({ product }: { product: Product }) {
         e.preventDefault();
         if (product.stock === 0 || product.isSold) return;
         addItem({
-            productId: product._id,
+            productId: product.id,
             name: product.name,
             price: product.price,
             image: product.images[0] || '',
@@ -56,7 +56,7 @@ export default function ProductCard({ product }: { product: Product }) {
     };
 
     return (
-        <Link href={`/products/${product._id}`} style={{ textDecoration: 'none' }}>
+        <Link href={`/products/${product.id}`} style={{ textDecoration: 'none' }}>
             <div className="glass-card" style={{ overflow: 'hidden', cursor: 'pointer', position: 'relative' }}>
                 {/* Image */}
                 <div style={{

@@ -69,7 +69,7 @@ export default function TransactionsPage() {
                                 </td>
                                 <td style={{ padding: '16px 20px' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.85rem', color: '#b8a9d0', textTransform: 'capitalize' }}>
-                                        {tx.payment_method === 'mpesa' ? '📱 M-Pesa' : tx.payment_method === 'stripe' ? '💳 Stripe' : '🏦 Other'}
+                                        {tx.payment_method === 'mpesa' ? '📱 M-Pesa' : tx.payment_method === 'paypal' ? '💳 PayPal' : '🏦 Other'}
                                     </div>
                                 </td>
                                 <td style={{ padding: '16px 20px' }}>
