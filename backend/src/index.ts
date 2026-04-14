@@ -33,7 +33,7 @@ const globalLimiter = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     message: { success: false, message: 'Too many requests, please try again later.' },
-    skip: (req) => req.url.startsWith('/api/payments/stripe/webhook') || req.url.startsWith('/api/payments/mpesa/callback'), // Don't block webhooks/callbacks
+    skip: (req) => req.url.startsWith('/api/payments/mpesa/callback'), // Don't block callbacks
 });
 
 // ─── Middleware ──────────────────────────────────────────────────────────────
@@ -67,8 +67,6 @@ app.use('/api', globalLimiter);
 // Prevent HTTP Parameter Pollution
 app.use(hpp());
 
-// Stripe webhook needs raw body
-app.use('/api/payments/stripe/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
