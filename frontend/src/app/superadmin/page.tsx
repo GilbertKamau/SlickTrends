@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { TrendingUp, DollarSign, ShoppingCart, Users, Package, AlertTriangle, BarChart2, LogOut } from 'lucide-react';
+import { TrendingUp, DollarSign, ShoppingCart, Users, Package, AlertTriangle, BarChart2, LogOut, ExternalLink } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
@@ -44,6 +44,14 @@ export default function SuperAdminPage() {
         { label: 'Total Orders', value: metrics?.orders?.total || 0, icon: ShoppingCart, color: '#7c3aed', sub: `${metrics?.orders?.pending || 0} pending` },
         { label: 'Products', value: metrics?.products?.total || 0, icon: Package, color: '#10b981', sub: `${metrics?.products?.lowStock || 0} low stock` },
         { label: 'Customers', value: metrics?.users?.customers || 0, icon: Users, color: '#60a5fa', sub: 'Registered users' },
+        { 
+            label: 'Real-time Analytics', 
+            value: 'Umami', 
+            icon: ExternalLink, 
+            color: '#9333ea', 
+            sub: 'View detailed traffic',
+            link: `https://cloud.umami.is/websites/${process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID}`
+        },
     ];
 
     const orderPieData = [
@@ -94,18 +102,30 @@ export default function SuperAdminPage() {
 
             {/* KPI Cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20, marginBottom: 36 }}>
-                {kpis.map(({ label, value, icon: Icon, color, sub }) => (
-                    <div key={label} className="glass-card" style={{ padding: 24 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                            <div style={{ fontSize: '0.8rem', color: '#6b5a8a' }}>{label}</div>
-                            <div style={{ width: 40, height: 40, borderRadius: 10, background: `${color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <Icon size={18} color={color} />
+                {kpis.map(({ label, value, icon: Icon, color, sub, link }) => {
+                    const CardContent = (
+                        <>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                                <div style={{ fontSize: '0.8rem', color: '#6b5a8a' }}>{label}</div>
+                                <div style={{ width: 40, height: 40, borderRadius: 10, background: `${color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <Icon size={18} color={color} />
+                                </div>
                             </div>
+                            <div style={{ fontSize: '1.8rem', fontWeight: 800, color, marginBottom: 6, lineHeight: 1 }}>{value}</div>
+                            <div style={{ fontSize: '0.75rem', color: '#6b5a8a' }}>{sub}</div>
+                        </>
+                    );
+
+                    return link ? (
+                        <a key={label} href={link} target="_blank" rel="noopener noreferrer" className="glass-card" style={{ padding: 24, textDecoration: 'none', transition: 'transform 0.2s', display: 'block' }}>
+                            {CardContent}
+                        </a>
+                    ) : (
+                        <div key={label} className="glass-card" style={{ padding: 24 }}>
+                            {CardContent}
                         </div>
-                        <div style={{ fontSize: '1.8rem', fontWeight: 800, color, marginBottom: 6, lineHeight: 1 }}>{value}</div>
-                        <div style={{ fontSize: '0.75rem', color: '#6b5a8a' }}>{sub}</div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
             {/* Low Stock Alert */}

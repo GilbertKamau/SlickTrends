@@ -211,7 +211,7 @@ export default function ProductDetailPage() {
                                         { icon: Truck, title: 'Island-wide Delivery', desc: 'Fast shipping within 24-48 hours' },
                                         { icon: Shield, title: 'Quality Assured', desc: 'Every item is hand-picked and sanitized' },
                                         { icon: RefreshCw, title: 'Easy Exchanges', desc: 'Within 7 days of purchase' },
-                                        { icon: Star, title: 'Secure Payment', desc: 'Full MPesa/Stripe integration' },
+                                        { icon: Star, title: 'Secure Payment', desc: 'Secure M-Pesa mobile payment' },
                                     ].map(({ icon: Icon, title, desc }) => (
                                         <div key={title} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                                             <Icon size={20} color="var(--accent-gold)" style={{ marginTop: 2, flexShrink: 0 }} />

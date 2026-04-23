@@ -14,7 +14,6 @@ import toast from 'react-hot-toast';
 
 const PAYMENT_METHODS = [
     { id: 'mpesa', label: 'M-Pesa', icon: Smartphone, desc: 'Pay via M-Pesa STK Push', color: '#10b981' },
-    { id: 'paypal', label: 'PayPal / Card', icon: Globe, desc: 'Pay with PayPal or Credit/Debit Card', color: '#0070ba' },
 ];
 
 export default function CheckoutPage() {
@@ -179,7 +178,7 @@ export default function CheckoutPage() {
                                         <div>
                                             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 8, letterSpacing: 1 }}>Payment Method</div>
                                             <div style={{ color: 'var(--text-primary)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 8 }}>
-                                                {payMethod === 'mpesa' ? <Smartphone size={16} color="#10b981" /> : <Globe size={16} color="#0070ba" />}
+                                                <Smartphone size={16} color="#10b981" />
                                                 {PAYMENT_METHODS.find(p => p.id === payMethod)?.label}
                                             </div>
                                         </div>

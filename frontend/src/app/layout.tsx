@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -9,7 +10,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://slicktrends.com';
 const SITE_NAME = 'Slick Trends';
 const DEFAULT_TITLE = 'Slick Trends — Premium Second-Hand Sleepwear';
 const DEFAULT_DESCRIPTION =
-  'Shop curated second-hand robes, onesies, pajamas, night dresses, baby onesies and pre-teen robes at Slick Trends. Sustainable luxury sleepwear at affordable prices. Pay with MPesa, Stripe, PayPal or Card.';
+  'Shop curated second-hand robes, onesies, pajamas, night dresses, baby onesies and pre-teen robes at Slick Trends. Sustainable luxury sleepwear at affordable prices. Pay conveniently with M-Pesa.';
 
 export const viewport: Viewport = {
   themeColor: '#1a0533',
@@ -28,7 +29,7 @@ export const metadata: Metadata = {
   keywords: [
     'second hand robes', 'second hand pajamas', 'used onesies', 'night dresses Kenya',
     'baby onesies second hand', 'pre-teen robes', 'baby robes', 'affordable sleepwear',
-    'sustainable sleepwear Kenya', 'MPesa clothing', 'Slick Trends', 'second hand kids sleepwear',
+    'sustainable sleepwear Kenya', 'M-Pesa clothing', 'Slick Trends', 'second hand kids sleepwear',
     'cheap robes online', 'night wear Kenya', 'thrift sleepwear',
   ],
   authors: [{ name: 'Slick Trends', url: SITE_URL }],
@@ -154,6 +155,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
         <SpeedInsights />
         <Analytics />
+        {process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID && (
+          <Script
+            src={process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL || "https://cloud.umami.is/script.js"}
+            data-website-id={process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID}
+            strategy="afterInteractive"
+          />
+        )}
       </body>
     </html>
   );
