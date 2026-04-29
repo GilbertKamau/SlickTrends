@@ -8,6 +8,16 @@ import { sendWelcomeEmail, sendOTPEmail, sendPasswordResetEmail } from '../servi
 import crypto from 'crypto';
 import passport from 'passport';
 import { v4 as uuidv4 } from 'uuid';
+import { body, validationResult } from 'express-validator';
+
+const validate = (req: Request, res: Response, next: NextFunction): void => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        res.status(400).json({ success: false, errors: errors.array() });
+        return;
+    }
+    next();
+};
 
 const router = Router();
 
@@ -25,12 +35,15 @@ const generateToken = (id: string, email: string, role: string): string => {
     } as jwt.SignOptions);
 };
 
-router.post('/register', authLimiter, async (req: Request, res: Response): Promise<void> => {
+router.post('/register', authLimiter, [
+    body('name').trim().notEmpty().withMessage('Name is required').escape(),
+    body('email').isEmail().withMessage('Valid email is required').normalizeEmail(),
+    body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
+    body('phone').optional().trim().escape(),
+    validate
+], async (req: Request, res: Response): Promise<void> => {
     try {
         const { name, email, password, phone } = req.body;
-        if (!name || !email || !password) {
-            res.status(400).json({ success: false, message: 'Name, email and password are required.' }); return;
-        }
 
         const existsRes = await query('SELECT id FROM users WHERE email = $1', [email]);
         if (existsRes.rows.length > 0) {
@@ -63,12 +76,13 @@ router.post('/register', authLimiter, async (req: Request, res: Response): Promi
     }
 });
 
-router.post('/login', authLimiter, async (req: Request, res: Response): Promise<void> => {
+router.post('/login', authLimiter, [
+    body('email').isEmail().withMessage('Valid email is required').normalizeEmail(),
+    body('password').notEmpty().withMessage('Password is required'),
+    validate
+], async (req: Request, res: Response): Promise<void> => {
     try {
         const { email, password } = req.body;
-        if (!email || !password) {
-            res.status(400).json({ success: false, message: 'Email and password are required.' }); return;
-        }
 
         const userRes = await query('SELECT * FROM users WHERE email = $1', [email]);
         if (userRes.rows.length === 0) {
@@ -143,12 +157,15 @@ router.put('/change-password', protect as any, async (req: AuthRequest, res: Res
     }
 });
 
-router.post('/create-staff', protect as any, requireRole('superadmin') as any, async (req: AuthRequest, res: Response): Promise<void> => {
+router.post('/create-staff', protect as any, requireRole('superadmin') as any, [
+    body('name').trim().notEmpty().withMessage('Name is required').escape(),
+    body('email').isEmail().withMessage('Valid email is required').normalizeEmail(),
+    body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
+    body('role').isIn(['admin', 'superadmin']).withMessage('Invalid role'),
+    validate
+], async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { name, email, password, role } = req.body;
-        if (!['admin', 'superadmin'].includes(role)) {
-            res.status(400).json({ success: false, message: 'Invalid role.' }); return;
-        }
 
         const existsRes = await query('SELECT id FROM users WHERE email = $1', [email]);
         if (existsRes.rows.length > 0) { res.status(409).json({ success: false, message: 'Email already registered.' }); return; }
@@ -167,7 +184,11 @@ router.post('/create-staff', protect as any, requireRole('superadmin') as any, a
     }
 });
 
-router.post('/verify-otp', async (req: Request, res: Response): Promise<void> => {
+router.post('/verify-otp', authLimiter, [
+    body('email').isEmail().withMessage('Valid email is required').normalizeEmail(),
+    body('otp').notEmpty().isLength({ min: 6, max: 6 }).withMessage('Valid OTP is required'),
+    validate
+], async (req: Request, res: Response): Promise<void> => {
     try {
         const { email, otp } = req.body;
         const userRes = await query('SELECT id FROM users WHERE email = $1 AND otp = $2 AND otp_expire > NOW()', [email, otp]);
@@ -178,7 +199,10 @@ router.post('/verify-otp', async (req: Request, res: Response): Promise<void> =>
     } catch (err) { res.status(500).json({ success: false, message: 'Server error.' }); }
 });
 
-router.post('/forgot-password', async (req: Request, res: Response): Promise<void> => {
+router.post('/forgot-password', authLimiter, [
+    body('email').isEmail().withMessage('Valid email is required').normalizeEmail(),
+    validate
+], async (req: Request, res: Response): Promise<void> => {
     try {
         const userRes = await query('SELECT id, name, email FROM users WHERE email = $1', [req.body.email]);
         if (userRes.rows.length === 0) { res.status(404).json({ success: false, message: 'User not found.' }); return; }
@@ -197,7 +221,10 @@ router.post('/forgot-password', async (req: Request, res: Response): Promise<voi
     } catch (err) { res.status(500).json({ success: false, message: 'Server error.' }); }
 });
 
-router.post('/reset-password/:token', async (req: Request, res: Response): Promise<void> => {
+router.post('/reset-password/:token', authLimiter, [
+    body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
+    validate
+], async (req: Request, res: Response): Promise<void> => {
     try {
         const hashedToken = crypto.createHash('sha256').update(req.params.token as string).digest('hex');
         const userRes = await query('SELECT id FROM users WHERE reset_password_token = $1 AND reset_password_expire > NOW()', [hashedToken]);
