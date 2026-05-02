@@ -32,8 +32,8 @@ export default function AdminStockPage() {
     }, []);
     useEffect(() => { fetchProducts(); }, [fetchProducts]);
 
-    const handleEdit = (p: typeof form & { _id: string }) => {
-        setEditId(p._id);
+    const handleEdit = (p: typeof form & { _id?: string; id?: string }) => {
+        setEditId(p.id || p._id || null);
         setForm({ name: p.name, description: p.description, category: p.category, size: p.size, condition: p.condition, price: String(p.price), originalPrice: String(p.originalPrice || ''), stock: String(p.stock), brand: p.brand || '', color: p.color || '', material: p.material || '', isFeatured: p.isFeatured, images: p.images?.length ? p.images : [''] });
         setShowForm(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -227,7 +227,7 @@ export default function AdminStockPage() {
                                 <tbody>
                                     {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                                     {products.map((p: any) => (
-                                        <tr key={p._id} style={{ borderBottom: '1px solid rgba(124,58,237,0.08)' }}>
+                                        <tr key={p.id || p._id} style={{ borderBottom: '1px solid rgba(124,58,237,0.08)' }}>
                                             <td style={{ padding: '12px 16px' }}>
                                                 <div style={{ fontWeight: 600, color: '#f5f0ff', maxWidth: 180, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</div>
                                                 {p.isFeatured && <span className="badge badge-gold" style={{ fontSize: '0.65rem', marginTop: 4 }}>Featured</span>}
@@ -245,7 +245,7 @@ export default function AdminStockPage() {
                                             <td style={{ padding: '12px 16px' }}>
                                                 <div style={{ display: 'flex', gap: 8 }}>
                                                     <button onClick={() => handleEdit(p)} style={{ background: 'rgba(124,58,237,0.2)', border: 'none', borderRadius: 6, padding: '6px 10px', color: '#a855f7', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.8rem' }}><Edit3 size={12} /> Edit</button>
-                                                    <button onClick={() => handleDelete(p._id)} style={{ background: 'rgba(239,68,68,0.1)', border: 'none', borderRadius: 6, padding: '6px 10px', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.8rem' }}><Trash2 size={12} /></button>
+                                                    <button onClick={() => handleDelete(p.id || p._id)} style={{ background: 'rgba(239,68,68,0.1)', border: 'none', borderRadius: 6, padding: '6px 10px', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.8rem' }}><Trash2 size={12} /></button>
                                                 </div>
                                             </td>
                                         </tr>

@@ -193,7 +193,7 @@ function ProductsContent() {
                         ) : (
                             <div className="product-grid">
                                 {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                                {products.map((p: any) => <ProductCard key={p._id} product={p} />)}
+                                {products.map((p: any) => <ProductCard key={p.id || p._id} product={p} />)}
                             </div>
                         )}
 

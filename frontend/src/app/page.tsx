@@ -169,7 +169,7 @@ export default function HomePage() {
             ) : (
               <div className="product-grid">
                 {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                {featured.map((p: any) => <ProductCard key={p._id} product={p} />)}
+                {featured.map((p: any) => <ProductCard key={p.id || p._id} product={p} />)}
               </div>
             )}
           </div>
