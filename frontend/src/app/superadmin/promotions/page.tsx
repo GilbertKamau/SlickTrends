@@ -158,12 +158,12 @@ export default function PromotionsPage() {
                     <p style={{ color: 'var(--text-muted)' }}>No promotions found. Create your first one!</p>
                 ) : (
                     promotions.map((promo: any) => (
-                        <div key={promo._id} className="glass-card" style={{ overflow: 'hidden', opacity: promo.isActive ? 1 : 0.6 }}>
+                        <div key={promo.id || promo._id} className="glass-card" style={{ overflow: 'hidden', opacity: promo.isActive ? 1 : 0.6 }}>
                             <div style={{ height: 120, position: 'relative' }}>
                                 <img src={promo.imageUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
                                 <div style={{ position: 'absolute', top: 12, right: 12 }}>
                                     <button 
-                                        onClick={() => handleToggle(promo._id, promo.isActive)}
+                                        onClick={() => handleToggle(promo.id || promo._id, promo.isActive)}
                                         style={{ 
                                             background: promo.isActive ? 'var(--accent-gold)' : 'var(--text-muted)', 
                                             border: 'none', borderRadius: 20, padding: '4px 12px', color: '#000', 
@@ -182,7 +182,7 @@ export default function PromotionsPage() {
                                         <Megaphone size={14} /> {promo.type}
                                     </span>
                                     <div style={{ display: 'flex', gap: 8 }}>
-                                        <button onClick={() => handleDelete(promo._id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 4 }}>
+                                        <button onClick={() => handleDelete(promo.id || promo._id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 4 }}>
                                             <Trash2 size={18} />
                                         </button>
                                     </div>

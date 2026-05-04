@@ -65,11 +65,11 @@ export default function OrdersPage() {
             ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                     {orders.map((order) => (
-                        <div key={order._id} className="glass-card" style={{ padding: 24, transition: 'transform 0.2s' }}>
+                        <div key={order.id || order._id} className="glass-card" style={{ padding: 24, transition: 'transform 0.2s' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
                                 <div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-                                        <span style={{ color: '#d4af37', fontWeight: 700, fontSize: '1.1rem' }}>Order #{order._id.slice(-6).toUpperCase()}</span>
+                                        <span style={{ color: '#d4af37', fontWeight: 700, fontSize: '1.1rem' }}>Order #{(order.id || order._id || '').slice(-6).toUpperCase()}</span>
                                         <div style={{ 
                                             display: 'flex', alignItems: 'center', gap: 6, 
                                             padding: '4px 12px', borderRadius: 20, 
@@ -95,7 +95,7 @@ export default function OrdersPage() {
                                     {/* Simplified item list indicator */}
                                     <p style={{ color: '#b8a9d0', fontSize: '0.9rem' }}>{order.items.length} {order.items.length === 1 ? 'item' : 'items'} in this order</p>
                                 </div>
-                                <Link href={`/orders/${order._id}`} style={{ color: '#d4af37', fontSize: '0.875rem', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                <Link href={`/orders/${order.id || order._id}`} style={{ color: '#d4af37', fontSize: '0.875rem', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
                                     View Details <ArrowRight size={14} />
                                 </Link>
                             </div>

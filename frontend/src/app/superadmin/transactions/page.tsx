@@ -61,7 +61,7 @@ export default function TransactionsPage() {
                             <tr key={tx.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                                 <td style={{ padding: '16px 20px' }}>
                                     <div style={{ fontFamily: 'monospace', color: '#f5f0ff', fontSize: '0.85rem' }}>#{tx.id.slice(0, 8)}...</div>
-                                    <div style={{ fontSize: '0.7rem', color: '#6b5a8a' }}>Order: #{tx.order_id.slice(0, 8)}</div>
+                                    <div style={{ fontSize: '0.7rem', color: '#6b5a8a' }}>Order: #{(tx.order_id || '').slice(0, 8)}</div>
                                 </td>
                                 <td style={{ padding: '16px 20px' }}>
                                     <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>{tx.user_name || 'Guest'}</div>
