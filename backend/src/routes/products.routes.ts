@@ -224,7 +224,9 @@ router.post('/bulk-zip', protect as any, requireRole('admin', 'superadmin') as a
                     }
                 }
 
+                const productId = p.id || uuidv4();
                 const params: any[] = [
+                    productId,
                     p.name, 
                     p.description || '', 
                     p.category || 'Uncategorized', 
@@ -243,8 +245,8 @@ router.post('/bulk-zip', protect as any, requireRole('admin', 'superadmin') as a
                 ];
 
                 const productRes = await query(
-                    `INSERT INTO products (name, description, category, size, condition, price, original_price, stock, images, brand, color, material, is_featured, added_by, tags)
-                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *`,
+                    `INSERT INTO products (id, name, description, category, size, condition, price, original_price, stock, images, brand, color, material, is_featured, added_by, tags)
+                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *`,
                     params
                 );
                 addedProducts.push(productRes.rows[0]);
