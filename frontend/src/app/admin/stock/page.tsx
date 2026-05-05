@@ -227,7 +227,7 @@ export default function AdminStockPage() {
                                 </thead>
                                 <tbody>
                                     {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                                    {products.map((p: any) => (
+                                    {products.filter((p: any) => p.is_active !== false && p.isActive !== false).map((p: any) => (
                                         <tr key={p.id || p._id} style={{ borderBottom: '1px solid rgba(124,58,237,0.08)' }}>
                                             <td style={{ padding: '12px 16px' }}>
                                                 <div style={{ fontWeight: 600, color: '#f5f0ff', maxWidth: 180, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</div>
