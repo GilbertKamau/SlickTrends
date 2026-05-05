@@ -74,6 +74,7 @@ export default function AdminStockPage() {
     };
 
     const handleDelete = async (id: string) => {
+        console.log('Attempting to delete product with ID:', id);
         if (!confirm('Remove this product?')) return;
         try { await api.delete(`/products/${id}`); toast.success('Product removed'); fetchProducts(); } catch { toast.error('Failed to remove'); }
     };
