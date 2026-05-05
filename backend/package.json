@@ -19,6 +19,7 @@
         "@types/passport": "^1.0.17",
         "@types/passport-google-oauth20": "^2.0.17",
         "@types/passport-microsoft": "^2.1.1",
+        "adm-zip": "^0.5.17",
         "axios": "^1.13.6",
         "bcryptjs": "^3.0.3",
         "cloudinary": "^2.9.0",
@@ -42,6 +43,7 @@
         "uuid": "^13.0.0"
     },
     "devDependencies": {
+        "@types/adm-zip": "^0.5.8",
         "@types/bcryptjs": "^2.4.6",
         "@types/cors": "^2.8.19",
         "@types/express": "^5.0.6",

@@ -2,8 +2,12 @@ import { Router, Response } from 'express';
 import { query } from '../config/db.postgres';
 import { protect, requireRole, AuthRequest } from '../middleware/auth.middleware';
 import { v4 as uuidv4 } from 'uuid';
+import multer from 'multer';
+import AdmZip from 'adm-zip';
+import cloudinary from '../config/cloudinary';
 
 const router = Router();
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 * 1024 * 1024 } }); // 50MB limit for zip
 
 router.get('/', async (req: AuthRequest, res: Response): Promise<void> => {
     try {
@@ -165,6 +169,95 @@ router.get('/admin/all', protect as any, requireRole('admin', 'superadmin') as a
         res.json({ success: true, products: productsRes.rows, total, page: Number(page), pages: Math.ceil(total / Number(limit)) });
     } catch (err: any) {
         res.status(500).json({ success: false, message: 'Failed to fetch admin products.', error: process.env.NODE_ENV === 'development' ? err.message : undefined });
+    }
+});
+
+router.post('/bulk-zip', protect as any, requireRole('admin', 'superadmin') as any, upload.single('zipfile'), async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        if (!req.file) {
+            res.status(400).json({ success: false, message: 'No zip file provided.' });
+            return;
+        }
+
+        const zip = new AdmZip(req.file.buffer);
+        const zipEntries = zip.getEntries();
+        
+        const productsJsonEntry = zipEntries.find(entry => entry.entryName.endsWith('products.json'));
+        if (!productsJsonEntry) {
+            res.status(400).json({ success: false, message: 'products.json not found in the zip file.' });
+            return;
+        }
+
+        const productsJsonStr = productsJsonEntry.getData().toString('utf8');
+        let products: any[];
+        try {
+            products = JSON.parse(productsJsonStr);
+        } catch (e) {
+            res.status(400).json({ success: false, message: 'Invalid JSON in products.json.' });
+            return;
+        }
+
+        const addedProducts = [];
+        const failedProducts = [];
+
+        for (const p of products) {
+            try {
+                // Find and upload images
+                const uploadedImages = [];
+                if (p.images && Array.isArray(p.images)) {
+                    for (const imgName of p.images) {
+                        const imgEntry = zipEntries.find(entry => entry.name === imgName || entry.entryName.endsWith(imgName));
+                        if (imgEntry) {
+                            const buffer = imgEntry.getData();
+                            // Determine mimetype from extension
+                            const ext = imgName.split('.').pop()?.toLowerCase();
+                            const mimetype = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
+                            const b64 = buffer.toString('base64');
+                            const dataURI = `data:${mimetype};base64,${b64}`;
+                            
+                            const result = await cloudinary.uploader.upload(dataURI, {
+                                folder: 'slick-trends/products',
+                                resource_type: 'auto',
+                            });
+                            uploadedImages.push(result.secure_url);
+                        }
+                    }
+                }
+
+                const params: any[] = [
+                    p.name, 
+                    p.description || '', 
+                    p.category || 'Uncategorized', 
+                    p.size || 'M', 
+                    p.condition || 'Good', 
+                    p.price || 0, 
+                    p.originalPrice || null, 
+                    p.stockQuantity !== undefined ? p.stockQuantity : (p.stock || 0), 
+                    JSON.stringify(uploadedImages), 
+                    p.brand || null, 
+                    p.color || null, 
+                    p.material || null, 
+                    p.featured || p.isFeatured || false, 
+                    req.user!.id, 
+                    JSON.stringify(p.tags || [])
+                ];
+
+                const productRes = await query(
+                    `INSERT INTO products (name, description, category, size, condition, price, original_price, stock, images, brand, color, material, is_featured, added_by, tags)
+                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *`,
+                    params
+                );
+                addedProducts.push(productRes.rows[0]);
+            } catch (err: any) {
+                console.error(`Error adding product ${p.name}:`, err);
+                failedProducts.push({ name: p.name, error: err.message });
+            }
+        }
+
+        res.json({ success: true, added: addedProducts.length, failed: failedProducts.length, details: failedProducts });
+    } catch (err: any) {
+        console.error('Bulk upload error:', err);
+        res.status(500).json({ success: false, message: 'Failed to process bulk upload.', error: err.message });
     }
 });
 

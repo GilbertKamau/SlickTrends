@@ -1,0 +1,13 @@
+{
+  "name": "slick-product-uploader",
+  "version": "1.0.0",
+  "description": "Automated product uploader for SlickTrends admin",
+  "scripts": {
+    "upload": "node upload-products.js",
+    "dry-run": "node upload-products.js --dry-run",
+    "resume": "node upload-products.js --start"
+  },
+  "dependencies": {
+    "playwright": "^1.44.0"
+  }
+}
