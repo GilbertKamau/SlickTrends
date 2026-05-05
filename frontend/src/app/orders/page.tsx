@@ -6,7 +6,8 @@ import { useAuthStore } from '@/store/authStore';
 import Link from 'next/link';
 
 interface Order {
-    _id: string;
+    id?: string;
+    _id?: string;
     items: any[];
     totalAmount: number;
     status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';

@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 
 interface User {
     id: string;
+    _id?: string;
     name: string;
     email: string;
     role: string;
@@ -105,7 +106,7 @@ export default function UsersPage() {
                                 </td>
                                 <td style={{ padding: '16px 20px', textAlign: 'right' }}>
                                     <button 
-                                        onClick={() => toggleStatus(user.id || user._id, user.isActive)}
+                                        onClick={() => toggleStatus(user.id || user._id || '', user.isActive)}
                                         style={{ background: 'none', border: 'none', color: user.isActive ? '#ef4444' : '#10b981', cursor: 'pointer', padding: 8, transition: 'all 0.2s' }}
                                         title={user.isActive ? 'Deactivate User' : 'Activate User'}
                                     >
