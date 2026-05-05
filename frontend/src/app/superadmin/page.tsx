@@ -68,7 +68,7 @@ export default function SuperAdminPage() {
     }));
 
     const categoryData = (metrics?.products?.byCategory || []).map(c => ({
-        name: c.id.replace('-', ' '),
+        name: (c.id || 'uncategorized').replace('-', ' '),
         count: c.count,
         avgPrice: Math.round(c.avgPrice),
     }));
