@@ -117,7 +117,7 @@ export default function ProductCard({ product }: { product: Product }) {
                         {product.name}
                     </h3>
                     <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: 12, textTransform: 'capitalize' }}>
-                        {product.category.replace('-', ' ')}
+                        {product.category?.replace('-', ' ') || 'Uncategorized'}
                     </p>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                         <div style={{ display: 'flex', flexDirection: 'column' }}>

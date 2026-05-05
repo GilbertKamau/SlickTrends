@@ -157,7 +157,7 @@ export default function ProductDetailPage() {
                             </div>
 
                             <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '2.5rem', marginBottom: 8, lineHeight: 1.2 }}>{product.name}</h1>
-                            <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', marginBottom: 24, textTransform: 'capitalize' }}>{product.category.replace('-', ' ')}</p>
+                            <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', marginBottom: 24, textTransform: 'capitalize' }}>{product.category?.replace('-', ' ') || 'Uncategorized'}</p>
 
                             <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 32 }}>
                                 <span style={{ fontSize: '2.2rem', fontWeight: 800, color: 'var(--accent-gold)' }}>KES {product.price.toLocaleString()}</span>
